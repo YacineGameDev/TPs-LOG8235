@@ -17,7 +17,8 @@ float ASDTAIController::ComputeSpeed(float deltaTime) {
 
 void ASDTAIController::MoveActor(float nSpeed) {
 	APawn* pawn = GetPawn();
-	pawn->AddMovementInput(GetActorForwardVector(), nSpeed);
+	float velocity = pawn->GetVelocity().Size() + nSpeed;
+	pawn->AddMovementInput(GetActorForwardVector(), velocity);
 	if (pawn->GetMovementComponent()->IsExceedingMaxSpeed(V_MAX)) {
 		pawn->AddMovementInput(nSpeed * GetActorForwardVector(), -1.0);
 	}

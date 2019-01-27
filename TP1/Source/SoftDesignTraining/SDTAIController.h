@@ -20,6 +20,6 @@ public:
 	void MoveActor(float nSpeed);
 	void Align();
 private:
-	float const ACCELERATION = 2;
-	float const V_MAX = 500;
+	float const ACCELERATION = 1;
+	float const V_MAX = 8;
 };
