@@ -17,9 +17,11 @@ class SOFTDESIGNTRAINING_API ASDTAIController : public AAIController
 public:
     virtual void Tick(float deltaTime) override;
 	float ComputeSpeed(float deltaTime);
-	void MoveActor(float nSpeed);
-	void Align();
+	//virtual void MoveActor(float nSpeed);
+	virtual void MoveForward(float speed, float deltaTime);
+	virtual void Align();
+	virtual void DetectObstable();
 private:
-	float const ACCELERATION = 1;
-	float const V_MAX = 8;
+	float const ACCELERATION = 5000.0f;
+	float const MAX_SPEED = 50000000.0f;
 };
