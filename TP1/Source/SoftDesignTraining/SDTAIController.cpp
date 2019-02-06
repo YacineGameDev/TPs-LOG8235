@@ -7,23 +7,22 @@
 
 void ASDTAIController::Tick(float deltaTime)
 {
-	float nSpeed = ComputeSpeed(deltaTime);
+	currentSpeed = ComputeSpeed(deltaTime);
 	Align();
-	MoveForward(nSpeed, deltaTime);
+	MoveForward(currentSpeed, deltaTime);
+	DetectObstable();
 }
 
 float ASDTAIController::ComputeSpeed(float deltaTime) {
-	APawn* pawn = GetPawn();
-	return ACCELERATION * deltaTime;
+	return currentSpeed + ACCELERATION * deltaTime;
 }
 
-void ASDTAIController::MoveForward( float nSpeed, float deltaTime)
+void ASDTAIController::MoveForward( float currentSpeed, float deltaTime)
 {
 	APawn* pawn = GetPawn();
-	float velocity = pawn->GetVelocity().Size() + nSpeed;
 	FVector2D direction = FVector2D(pawn->GetActorForwardVector());
 	FVector const pawnPosition(pawn->GetActorLocation());
-	FVector2D const displacement =  velocity * deltaTime * direction;
+	FVector2D const displacement = FMath::Min(500.f,currentSpeed) * deltaTime * direction;
 	pawn->SetActorLocation(pawnPosition + FVector(displacement, 0.f), true);
 }
 
@@ -38,22 +37,19 @@ void ASDTAIController::MoveForward( float nSpeed, float deltaTime)
 }*/
 
 void ASDTAIController::Align() {
-
 }
 
-void ASDTAIController::DetectObstable() {
+TArray<struct FHitResult> ASDTAIController::DetectObstable() {
 
 	APawn* pawn = GetPawn();
-	//FVector testDirection = pawn->GetActorForwardVector();
 	UWorld * World = GetWorld();
 	PhysicsHelpers physicHelper(World);
-	FVector actorLocation = GetPawn()->GetActorLocation();
-	FVector endPointRay = GetPawn()->GetActorForwardVector()*300.0f;
+	FVector actorLocation = pawn->GetActorLocation();
+	FVector endPointRay = actorLocation + pawn->GetActorForwardVector()*250.0f;
 	TArray<struct FHitResult> hitResult;
 	physicHelper.CastRay(actorLocation, endPointRay, hitResult, true);
-	/*if (hitResult.Num() > 0) {
-		pawn->SetActorRotation(testDirection.ToOrientationQuat());
-	}*/
+	return hitResult;
+	
 }
 
 

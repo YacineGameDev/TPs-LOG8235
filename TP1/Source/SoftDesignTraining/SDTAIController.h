@@ -20,8 +20,10 @@ public:
 	//virtual void MoveActor(float nSpeed);
 	virtual void MoveForward(float speed, float deltaTime);
 	virtual void Align();
-	virtual void DetectObstable();
+	virtual TArray<struct FHitResult> DetectObstable();
 private:
-	float const ACCELERATION = 5000.0f;
-	float const MAX_SPEED = 50000000.0f;
+	float const ACCELERATION = 40.0f;
+	float const MAX_SPEED = 500.f;
+	bool hasBegun = false;
+	float currentSpeed = 0.0f;
 };
