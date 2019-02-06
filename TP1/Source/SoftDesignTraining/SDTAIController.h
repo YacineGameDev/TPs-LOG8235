@@ -16,19 +16,21 @@ class SOFTDESIGNTRAINING_API ASDTAIController : public AAIController
     GENERATED_BODY()
 public:
     virtual void Tick(float deltaTime) override;
-	virtual float ComputeSpeed(float deltaTime);
-	virtual void ComputeAcceleration(float distanceFromObstable);
+	virtual void ComputeSpeedRatio(bool isAccelerating, float distanceFromObstacle = 0);
 
-	virtual void MoveActor(float computeSpeed);
+	virtual void MoveActor();
 	virtual void Align();
 	virtual TArray<struct FHitResult> DetectObstacle();
 	virtual void AvoidObstacle(TArray<struct FHitResult> hitResults);
 	virtual FVector GetRelativeDistance(FVector actorPosition, FVector targetPosition);
 private:
-	float const MAX_ACCELERATION = 0.001f;
-	float const MAX_SPEED = 500.0f;
-	float const DECELERATION_DISTANCE = 500.0f;
+	float const MAX_SPEED = 300.0f;
+	float const DETECTION_DISTANCE = 500.0f;
 
-	float acceleration = MAX_ACCELERATION;
-	bool hasBegun = false;
+	float speedRatio = 1;
+
+	// to remove
+	// float acceleration = MAX_ACCELERATION;
+
+
 };

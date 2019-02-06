@@ -7,23 +7,19 @@
 
 void ASDTAIController::Tick(float deltaTime)
 {
-	float computeSpeed = ComputeSpeed(deltaTime);
 	Align();
-	MoveActor(computeSpeed);
+	MoveActor();
 	TArray<struct FHitResult> hitResult = DetectObstacle();
 	AvoidObstacle(hitResult);
 }
 
-float ASDTAIController::ComputeSpeed(float deltaTime) {
-	return acceleration * deltaTime;
-}
 
-void ASDTAIController::MoveActor(float computeSpeed) {
+void ASDTAIController::MoveActor() {
 	APawn* pawn = GetPawn();
 	FVector direction = pawn->GetActorForwardVector();
-	float velocity = pawn->GetVelocity().Size() + computeSpeed;
+	float velocity = pawn->GetVelocity().Size();
 	if (velocity < MAX_SPEED) {
-		pawn->AddMovementInput(direction, velocity);
+		pawn->AddMovementInput(direction, speedRatio);
 	}
 }
 
@@ -36,7 +32,7 @@ TArray<struct FHitResult> ASDTAIController::DetectObstacle() {
 	UWorld * World = GetWorld();
 	PhysicsHelpers physicHelper(World);
 	FVector actorLocation = pawn->GetActorLocation();
-	FVector endPointRay = actorLocation + pawn->GetActorForwardVector()*500.0f;
+	FVector endPointRay = actorLocation + pawn->GetActorForwardVector()*DETECTION_DISTANCE;
 	TArray<struct FHitResult> hitResult;
 	physicHelper.CastRay(actorLocation, endPointRay, hitResult, true);
 	return hitResult;
@@ -46,26 +42,35 @@ FVector ASDTAIController::GetRelativeDistance(FVector actorPosition, FVector tar
 	return targetPosition - actorPosition;
 }
 
-void ASDTAIController:: ComputeAcceleration(float distanceFromObstable) {
-	float ratio = 1;
-	if (distanceFromObstable < DECELERATION_DISTANCE) {
-		ratio = distanceFromObstable / DECELERATION_DISTANCE;
-		acceleration *= -ratio;
+void ASDTAIController::ComputeSpeedRatio(bool isAccelerating, float distanceFromObstacle) {
+	if (isAccelerating) {
+		speedRatio = speedRatio >= 1.0 ? 1.0: speedRatio * 1.005;
 	}
-	acceleration = MAX_ACCELERATION;
+	else {
+		speedRatio = distanceFromObstacle / (2 * DETECTION_DISTANCE);
+	}
+	
 }
 
 void ASDTAIController::AvoidObstacle(TArray<struct FHitResult> hitResults) {
-	if (hitResults.GetData() != nullptr) {
+	//FHitResult* OutSweepHitResult;
+	//ETeleportType Teleport;
+
+	if (hitResults.Num() != 0) {
 		APawn* pawn = GetPawn();
 		FVector actorPosition = pawn->GetActorLocation();
 		FVector obstaclePosition = hitResults.GetData()->GetActor()->GetActorLocation();
 		FVector2D relativeDistance = FVector2D(GetRelativeDistance(actorPosition, obstaclePosition));
-		ComputeAcceleration(relativeDistance.Size());
-		FRotator deltaRotation = FRotator(0,0,0);
-		//FHitResult* OutSweepHitResult;
-		//ETeleportType Teleport;
-		pawn->AddActorWorldRotation(deltaRotation, false);
+		ComputeSpeedRatio(false, relativeDistance.Size());
+
+		if (relativeDistance.Size() < 300.0f) {
+			FRotator deltaRotation = FRotator(0, 1, 0);
+			pawn->AddActorWorldRotation(deltaRotation, false);
+		}
+
+	}
+	else {
+		ComputeSpeedRatio(true);
 	}
 }
 
