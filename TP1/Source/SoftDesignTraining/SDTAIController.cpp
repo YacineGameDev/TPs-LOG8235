@@ -52,7 +52,7 @@ TArray<struct FHitResult> ASDTAIController::DetectObstacle() {
 	// create a collision sphere
 	FCollisionShape MyColSphere = FCollisionShape::MakeSphere(100.0f);
 	// draw collision sphere
-	// DrawDebugSphere(GetWorld(), SweepStart, MyColSphere.GetSphereRadius(), 20, FColor::Purple, false, -1,0);
+	DrawDebugSphere(GetWorld(), Detectionstart, MyColSphere.GetSphereRadius(), 20, FColor::Purple, false, -1,0);
 
 	// check if something got hit in the sweep
 	GetWorld()->SweepMultiByChannel(OutHits, Detectionstart, Detectionstart, FQuat::Identity, ECC_WorldStatic, MyColSphere);
@@ -79,20 +79,24 @@ FVector ASDTAIController::GetRelativeDistance(FVector actorPosition, FVector tar
 void ASDTAIController::AvoidObstacle(TArray<struct FHitResult> hitResults) {
 	//FHitResult* OutSweepHitResult;
 	//ETeleportType Teleport;
-	UE_LOG(LogTemp, Warning, TEXT("I DETECT !!!!!!"));
 	for (auto& Hit : hitResults)
 	{
+		// just for dev
 		UE_LOG(LogTemp, Warning, TEXT("Hit Result: %s"), *Hit.Actor->GetName());
+		if (Hit.Actor->GetName() != "Floor" || Hit.Actor->GetName().Contains("BP_SDTCollectible")) {
+			APawn* pawn = GetPawn();
+			FVector actorPosition = pawn->GetActorLocation();
+			FVector obstaclePosition = hitResults.GetData()->GetActor()->GetActorLocation();
+			FVector2D relativeDistance = FVector2D(GetRelativeDistance(actorPosition, obstaclePosition));
+			ComputeSpeedRatio(false, relativeDistance.Size());
+			FRotator deltaRotation = FRotator(0, 1, 0);
+			pawn->AddActorWorldRotation(deltaRotation, false);
+		}
 	}
 
-	APawn* pawn = GetPawn();
-	FVector actorPosition = pawn->GetActorLocation();
-	FVector obstaclePosition = hitResults.GetData()->GetActor()->GetActorLocation();
-	FVector2D relativeDistance = FVector2D(GetRelativeDistance(actorPosition, obstaclePosition));
-	ComputeSpeedRatio(false, relativeDistance.Size());
-
-	//FRotator deltaRotation = FRotator(0, 1, 0);
-	//pawn->AddActorWorldRotation(deltaRotation, false);
+	
+	
+	
 
 	/*if (relativeDistance.Size() < 300.0f) {
 		FRotator deltaRotation = FRotator(0, 1, 0);
