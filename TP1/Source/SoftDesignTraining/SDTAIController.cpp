@@ -7,11 +7,7 @@
 
 void ASDTAIController::Tick(float deltaTime)
 {
-	APawn* pawn = GetPawn();
-	// if condition just for dev to make it easier to focus on one Agent.
-	if (pawn->GetName() == "BP_SDTAICharacter2") {
-		MoveActor();
-	}
+	MoveActor();
 }
 
 
@@ -47,15 +43,16 @@ TArray<struct FHitResult> ASDTAIController::DetectObstacle() {
 	TArray<FHitResult> OutHits;
 
 	// start and end locations
-	FVector Detectionstart = pawn->GetActorLocation() + (pawn->GetActorForwardVector() * 200.0f);
-	Detectionstart.Z -= BoundsExtent.Z;
+	FVector Detectionstart = pawn->GetActorLocation() + (pawn->GetActorForwardVector() * DETECTION_DISTANCE);
+	//Detectionstart.Z -= BoundsExtent.Z;
 	// create a collision sphere
-	FCollisionShape MyColSphere = FCollisionShape::MakeSphere(100.0f);
+	FCollisionShape MyColSphere = FCollisionShape::MakeSphere(150.0f);
 	// draw collision sphere
 	DrawDebugSphere(GetWorld(), Detectionstart, MyColSphere.GetSphereRadius(), 20, FColor::Purple, false, -1,0);
 
 	// check if something got hit in the sweep
-	GetWorld()->SweepMultiByChannel(OutHits, Detectionstart, Detectionstart, FQuat::Identity, ECC_WorldStatic, MyColSphere);
+	GetWorld()->SweepMultiByChannel(OutHits, Detectionstart, Detectionstart, FQuat::Identity, ECC_Pawn, MyColSphere);
+
 
 	return OutHits;
 
@@ -67,7 +64,7 @@ void ASDTAIController::ComputeSpeedRatio(bool isAccelerating, float distanceFrom
 		speedRatio = speedRatio >= 1.0 ? 1.0: speedRatio * 1.005;
 	}
 	else {
-		speedRatio = distanceFromObstacle / (2 * DETECTION_DISTANCE);
+		speedRatio = 0.20f;
 	}
 	
 }
@@ -77,31 +74,30 @@ FVector ASDTAIController::GetRelativeDistance(FVector actorPosition, FVector tar
 }
 
 void ASDTAIController::AvoidObstacle(TArray<struct FHitResult> hitResults) {
-	//FHitResult* OutSweepHitResult;
-	//ETeleportType Teleport;
 	for (auto& Hit : hitResults)
 	{
-		// just for dev
 		UE_LOG(LogTemp, Warning, TEXT("Hit Result: %s"), *Hit.Actor->GetName());
-		if (Hit.Actor->GetName() != "Floor" || Hit.Actor->GetName().Contains("BP_SDTCollectible")) {
+
+		// just for dev
+		 if (Hit.Actor->GetName().Contains("Wall") || Hit.Actor->GetName().Contains("Death") || Hit.Actor->GetName().Contains("Main")) {
 			APawn* pawn = GetPawn();
 			FVector actorPosition = pawn->GetActorLocation();
 			FVector obstaclePosition = hitResults.GetData()->GetActor()->GetActorLocation();
 			FVector2D relativeDistance = FVector2D(GetRelativeDistance(actorPosition, obstaclePosition));
 			ComputeSpeedRatio(false, relativeDistance.Size());
-			FRotator deltaRotation = FRotator(0, 1, 0);
+
+			FVector2D const turnDirection = FVector2D(FVector::CrossProduct(pawn->GetActorUpVector(), Hit.ImpactNormal));
+			FVector tempCo = FVector::CrossProduct(pawn->GetActorForwardVector(), FVector(turnDirection, 0.0f));
+			float W = FMath::Sqrt(2) + FVector::DotProduct(pawn->GetActorForwardVector(), FVector(turnDirection, 0.0f));
+			FQuat orientationQuat = FQuat(tempCo.X,tempCo.Y,tempCo.Z, W);
+			orientationQuat.Normalize();
+			FQuat rotateTo = (orientationQuat) / 5.0f;
+
+			FRotator deltaRotation = FRotator(rotateTo);
 			pawn->AddActorWorldRotation(deltaRotation, false);
 		}
+
 	}
-
-	
-	
-	
-
-	/*if (relativeDistance.Size() < 300.0f) {
-		FRotator deltaRotation = FRotator(0, 1, 0);
-		pawn->AddActorWorldRotation(deltaRotation, false);
-	}*/
 }
 
 

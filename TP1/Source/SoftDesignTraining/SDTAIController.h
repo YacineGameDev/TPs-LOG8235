@@ -24,7 +24,7 @@ public:
 	virtual FVector GetRelativeDistance(FVector actorPosition, FVector targetPosition);
 private:
 	float const MAX_SPEED = 300.0f;
-	float const DETECTION_DISTANCE = 500.0f;
+	float const DETECTION_DISTANCE = 100.0f;
 
 	float speedRatio = 1;
 
