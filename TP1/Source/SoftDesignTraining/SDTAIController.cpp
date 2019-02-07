@@ -3,44 +3,64 @@
 #include "SoftDesignTraining.h"
 #include "SDTAIController.h"
 #include "PhysicsHelpers.h"
-
+#include "DrawDebugHelpers.h"
 
 void ASDTAIController::Tick(float deltaTime)
 {
-	Align();
-	MoveActor();
-	TArray<struct FHitResult> hitResult = DetectObstacle();
-	AvoidObstacle(hitResult);
+	APawn* pawn = GetPawn();
+	// if condition just for dev to make it easier to focus on one Agent.
+	if (pawn->GetName() == "BP_SDTAICharacter2") {
+		MoveActor();
+	}
 }
 
 
 void ASDTAIController::MoveActor() {
 	APawn* pawn = GetPawn();
 	FVector direction = pawn->GetActorForwardVector();
+	UE_LOG(LogTemp, Warning, TEXT("ACTOR: %s"), *pawn->GetName());
 	float velocity = pawn->GetVelocity().Size();
 	if (velocity < MAX_SPEED) {
 		pawn->AddMovementInput(direction, speedRatio);
 	}
-}
 
-void ASDTAIController::Align() {
+	TArray<struct FHitResult> hitResults = DetectObstacle();
+	if (hitResults.Num() != 0) {
+		AvoidObstacle(hitResults);
+	}
+	else {
+		ComputeSpeedRatio(true);
+	}
+	UE_LOG(LogTemp, Display, TEXT("**************************"));
+
 }
 
 TArray<struct FHitResult> ASDTAIController::DetectObstacle() {
 
 	APawn* pawn = GetPawn();
-	UWorld * World = GetWorld();
-	PhysicsHelpers physicHelper(World);
 	FVector actorLocation = pawn->GetActorLocation();
-	FVector endPointRay = actorLocation + pawn->GetActorForwardVector()*DETECTION_DISTANCE;
-	TArray<struct FHitResult> hitResult;
-	physicHelper.CastRay(actorLocation, endPointRay, hitResult, true);
-	return hitResult;
+
+	FVector Origin;
+	FVector BoundsExtent;
+	pawn->GetActorBounds(false, Origin, BoundsExtent);
+
+	TArray<FHitResult> OutHits;
+
+	// start and end locations
+	FVector Detectionstart = pawn->GetActorLocation() + (pawn->GetActorForwardVector() * 200.0f);
+	Detectionstart.Z -= BoundsExtent.Z;
+	// create a collision sphere
+	FCollisionShape MyColSphere = FCollisionShape::MakeSphere(100.0f);
+	// draw collision sphere
+	// DrawDebugSphere(GetWorld(), SweepStart, MyColSphere.GetSphereRadius(), 20, FColor::Purple, false, -1,0);
+
+	// check if something got hit in the sweep
+	GetWorld()->SweepMultiByChannel(OutHits, Detectionstart, Detectionstart, FQuat::Identity, ECC_WorldStatic, MyColSphere);
+
+	return OutHits;
+
 }
 
-FVector ASDTAIController::GetRelativeDistance(FVector actorPosition, FVector targetPosition) {
-	return targetPosition - actorPosition;
-}
 
 void ASDTAIController::ComputeSpeedRatio(bool isAccelerating, float distanceFromObstacle) {
 	if (isAccelerating) {
@@ -52,26 +72,32 @@ void ASDTAIController::ComputeSpeedRatio(bool isAccelerating, float distanceFrom
 	
 }
 
+FVector ASDTAIController::GetRelativeDistance(FVector actorPosition, FVector targetPosition) {
+	return targetPosition - actorPosition;
+}
+
 void ASDTAIController::AvoidObstacle(TArray<struct FHitResult> hitResults) {
 	//FHitResult* OutSweepHitResult;
 	//ETeleportType Teleport;
-
-	if (hitResults.Num() != 0) {
-		APawn* pawn = GetPawn();
-		FVector actorPosition = pawn->GetActorLocation();
-		FVector obstaclePosition = hitResults.GetData()->GetActor()->GetActorLocation();
-		FVector2D relativeDistance = FVector2D(GetRelativeDistance(actorPosition, obstaclePosition));
-		ComputeSpeedRatio(false, relativeDistance.Size());
-
-		if (relativeDistance.Size() < 300.0f) {
-			FRotator deltaRotation = FRotator(0, 1, 0);
-			pawn->AddActorWorldRotation(deltaRotation, false);
-		}
-
+	UE_LOG(LogTemp, Warning, TEXT("I DETECT !!!!!!"));
+	for (auto& Hit : hitResults)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Hit Result: %s"), *Hit.Actor->GetName());
 	}
-	else {
-		ComputeSpeedRatio(true);
-	}
+
+	APawn* pawn = GetPawn();
+	FVector actorPosition = pawn->GetActorLocation();
+	FVector obstaclePosition = hitResults.GetData()->GetActor()->GetActorLocation();
+	FVector2D relativeDistance = FVector2D(GetRelativeDistance(actorPosition, obstaclePosition));
+	ComputeSpeedRatio(false, relativeDistance.Size());
+
+	//FRotator deltaRotation = FRotator(0, 1, 0);
+	//pawn->AddActorWorldRotation(deltaRotation, false);
+
+	/*if (relativeDistance.Size() < 300.0f) {
+		FRotator deltaRotation = FRotator(0, 1, 0);
+		pawn->AddActorWorldRotation(deltaRotation, false);
+	}*/
 }
 
 

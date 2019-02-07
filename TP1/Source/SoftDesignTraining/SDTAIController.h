@@ -19,7 +19,6 @@ public:
 	virtual void ComputeSpeedRatio(bool isAccelerating, float distanceFromObstacle = 0);
 
 	virtual void MoveActor();
-	virtual void Align();
 	virtual TArray<struct FHitResult> DetectObstacle();
 	virtual void AvoidObstacle(TArray<struct FHitResult> hitResults);
 	virtual FVector GetRelativeDistance(FVector actorPosition, FVector targetPosition);
