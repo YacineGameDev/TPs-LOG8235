@@ -21,10 +21,14 @@ public:
 	virtual void MoveActor();
 	virtual TArray<struct FHitResult> DetectObstacle();
 	virtual void AvoidObstacle(TArray<struct FHitResult> hitResults);
+	virtual TArray<struct FHitResult> DetectFrontObstacle();
 	virtual FVector GetRelativeDistance(FVector actorPosition, FVector targetPosition);
 private:
-	float const MAX_SPEED = 300.0f;
-	float const DETECTION_DISTANCE = 100.0f;
+
+	float const MAX_SPEED = 250.0f;
+	float const SPHERE_RADIUS = 140;
+	float const SPHERE_OFFSET = 90.0f;
+	float const DETECTION_DISTANCE = 300.0f;
 
 	float speedRatio = 1;
 

@@ -8,6 +8,20 @@
 void ASDTAIController::Tick(float deltaTime)
 {
 	MoveActor();
+	TArray<struct FHitResult> hitResultsSphere = DetectObstacle();
+	TArray<struct FHitResult> hitResultsRay = DetectFrontObstacle();
+	if (hitResultsSphere.Num() != 0) {
+		AvoidObstacle(hitResultsSphere);
+	}
+	if (hitResultsRay.Num() != 0) {
+		FVector2D relativeDistance = FVector2D(GetRelativeDistance(GetPawn()->GetActorLocation(), hitResultsRay.GetData()->GetActor()->GetActorLocation()));
+		ComputeSpeedRatio(false, relativeDistance.Size());
+	}
+	else {
+		ComputeSpeedRatio(true);
+
+	}
+	UE_LOG(LogTemp, Display, TEXT("**************************"));
 }
 
 
@@ -19,16 +33,18 @@ void ASDTAIController::MoveActor() {
 	if (velocity < MAX_SPEED) {
 		pawn->AddMovementInput(direction, speedRatio);
 	}
+}
 
-	TArray<struct FHitResult> hitResults = DetectObstacle();
-	if (hitResults.Num() != 0) {
-		AvoidObstacle(hitResults);
-	}
-	else {
-		ComputeSpeedRatio(true);
-	}
-	UE_LOG(LogTemp, Display, TEXT("**************************"));
+TArray<struct FHitResult> ASDTAIController::DetectFrontObstacle() {
 
+	APawn* pawn = GetPawn();
+	UWorld * World = GetWorld();
+	PhysicsHelpers physicHelper(World);
+	FVector actorLocation = pawn->GetActorLocation();
+	FVector endPointRay = actorLocation + pawn->GetActorForwardVector() * DETECTION_DISTANCE;
+	TArray<struct FHitResult> hitResult;
+	physicHelper.CastRay(actorLocation, endPointRay, hitResult, true);
+	return hitResult;
 }
 
 TArray<struct FHitResult> ASDTAIController::DetectObstacle() {
@@ -43,28 +59,24 @@ TArray<struct FHitResult> ASDTAIController::DetectObstacle() {
 	TArray<FHitResult> OutHits;
 
 	// start and end locations
-	FVector Detectionstart = pawn->GetActorLocation() + (pawn->GetActorForwardVector() * DETECTION_DISTANCE);
+	FVector Detectionstart = pawn->GetActorLocation() + (pawn->GetActorForwardVector() * SPHERE_OFFSET);
 	//Detectionstart.Z -= BoundsExtent.Z;
 	// create a collision sphere
-	FCollisionShape MyColSphere = FCollisionShape::MakeSphere(150.0f);
+	FCollisionShape MyColSphere = FCollisionShape::MakeSphere(SPHERE_RADIUS);
 	// draw collision sphere
 	DrawDebugSphere(GetWorld(), Detectionstart, MyColSphere.GetSphereRadius(), 20, FColor::Purple, false, -1,0);
 
 	// check if something got hit in the sweep
 	GetWorld()->SweepMultiByChannel(OutHits, Detectionstart, Detectionstart, FQuat::Identity, ECC_Pawn, MyColSphere);
-
-
 	return OutHits;
-
 }
-
 
 void ASDTAIController::ComputeSpeedRatio(bool isAccelerating, float distanceFromObstacle) {
 	if (isAccelerating) {
-		speedRatio = speedRatio >= 1.0 ? 1.0: speedRatio * 1.005;
+		speedRatio = speedRatio >= 1.0 ? 1.0: speedRatio * 1.01;
 	}
 	else {
-		speedRatio = 0.20f;
+		speedRatio = 0.5;
 	}
 	
 }
@@ -76,24 +88,19 @@ FVector ASDTAIController::GetRelativeDistance(FVector actorPosition, FVector tar
 void ASDTAIController::AvoidObstacle(TArray<struct FHitResult> hitResults) {
 	for (auto& Hit : hitResults)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Hit Result: %s"), *Hit.Actor->GetName());
 
 		// just for dev
 		 if (Hit.Actor->GetName().Contains("Wall") || Hit.Actor->GetName().Contains("Death") || Hit.Actor->GetName().Contains("Main")) {
 			APawn* pawn = GetPawn();
-			FVector actorPosition = pawn->GetActorLocation();
-			FVector obstaclePosition = hitResults.GetData()->GetActor()->GetActorLocation();
-			FVector2D relativeDistance = FVector2D(GetRelativeDistance(actorPosition, obstaclePosition));
-			ComputeSpeedRatio(false, relativeDistance.Size());
-
-			FVector2D const turnDirection = FVector2D(FVector::CrossProduct(pawn->GetActorUpVector(), Hit.ImpactNormal));
+			FVector2D const turnDirection = FVector2D(FVector::CrossProduct(pawn->GetActorUpVector(), Hit.Normal));
 			FVector tempCo = FVector::CrossProduct(pawn->GetActorForwardVector(), FVector(turnDirection, 0.0f));
+			//UE_LOG(LogTemp, Warning, TEXT("test: %s"), *Hit.Actor->GetName());
 			float W = FMath::Sqrt(2) + FVector::DotProduct(pawn->GetActorForwardVector(), FVector(turnDirection, 0.0f));
-			FQuat orientationQuat = FQuat(tempCo.X,tempCo.Y,tempCo.Z, W);
+			FQuat orientationQuat = FQuat(tempCo.X, tempCo.Y, tempCo.Z, W);
 			orientationQuat.Normalize();
-			FQuat rotateTo = (orientationQuat) / 5.0f;
-
+			FQuat rotateTo = (orientationQuat) / 7.0f;
 			FRotator deltaRotation = FRotator(rotateTo);
+
 			pawn->AddActorWorldRotation(deltaRotation, false);
 		}
 
