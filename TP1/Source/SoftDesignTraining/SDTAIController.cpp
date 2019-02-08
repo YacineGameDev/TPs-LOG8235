@@ -4,79 +4,117 @@
 #include "SDTAIController.h"
 #include "PhysicsHelpers.h"
 #include "DrawDebugHelpers.h"
+#include "SoftDesignTrainingMainCharacter.h"
+#include "Kismet/GameplayStatics.h"
 
 void ASDTAIController::Tick(float deltaTime)
 {
-	MoveActor();
-	TArray<struct FHitResult> hitResultsSphere = DetectObstacle();
-	TArray<struct FHitResult> hitResultsRay = DetectFrontObstacle();
-	if (hitResultsSphere.Num() != 0) {
-		AvoidObstacle(hitResultsSphere);
-	}
-	if (hitResultsRay.Num() != 0) {
-		FVector2D relativeDistance = FVector2D(GetRelativeDistance(GetPawn()->GetActorLocation(), hitResultsRay.GetData()->GetActor()->GetActorLocation()));
-		ComputeSpeedRatio(false, relativeDistance.Size());
-	}
-	else {
-		ComputeSpeedRatio(true);
+	// static ConstructorHelpers::FObjectFinder<USoundBase> Soundf(TEXT("/Game/Sounds/backgroundsound"));
+	/*if (isTurningRight) {
+		ConstructorHelpers::FObjectFinder<USoundWave> sound(TEXT("/Games/SoftDesignTraining/Source/SoftDesignTraining/Sound/mario-sound.mp3"));
+		USoundBase* Sound = sound.Object;
+		UGameplayStatics::PlaySound2D(GetWorld(), Sound);
+		isTurningRight = false;
 
+	}*/
+	if (GetPawn()->GetName().Contains("BP_SDTAICharacter2")) {
+		MoveActor();
+		TArray<struct FHitResult> hitResultsSphere = DetectObstacle();
+		if (hitResultsSphere.Num() != 0) {
+			ComputeStrategy(hitResultsSphere);
+		}
+		else {
+			ComputeSpeedRatio(true, FVector::ZeroVector);
+		}
 	}
-	UE_LOG(LogTemp, Display, TEXT("**************************"));
 }
 
 
 void ASDTAIController::MoveActor() {
 	APawn* pawn = GetPawn();
 	FVector direction = pawn->GetActorForwardVector();
-	UE_LOG(LogTemp, Warning, TEXT("ACTOR: %s"), *pawn->GetName());
 	float velocity = pawn->GetVelocity().Size();
-	if (velocity < MAX_SPEED) {
+	if (velocity < speed) {
 		pawn->AddMovementInput(direction, speedRatio);
 	}
 }
 
-TArray<struct FHitResult> ASDTAIController::DetectFrontObstacle() {
+/*void ASDTAIController::ToggleTurningDirection() {
+	if (FMath::Rand() % 2) {
+	}
+	isTurningRight = !isTurningRight;
+	UE_LOG(LogTemp, Display, TEXT("!!!!!!!!!!!!!!!!!!!!!TEST!!!!!!!!!!!!!!!!!!!!!!!!"));
 
-	APawn* pawn = GetPawn();
-	UWorld * World = GetWorld();
-	PhysicsHelpers physicHelper(World);
-	FVector actorLocation = pawn->GetActorLocation();
-	FVector endPointRay = actorLocation + pawn->GetActorForwardVector() * DETECTION_DISTANCE;
-	TArray<struct FHitResult> hitResult;
-	physicHelper.CastRay(actorLocation, endPointRay, hitResult, true);
-	return hitResult;
+}*/
+
+void ASDTAIController::ComputeStrategy(TArray<struct FHitResult> hitResults) {
+	for (auto& Hit : hitResults)
+	{
+		if (Hit.Actor->GetName().Contains("Wall") || Hit.Actor->GetName().Contains("Death")) {
+			//UE_LOG(LogTemp, Warning, TEXT("Wall or Death: %s"), *Hit.Actor->GetName());
+			AvoidObstacle(Hit);
+		}
+		else if (Hit.Actor->GetName().Contains("Main")) {
+			ASoftDesignTrainingMainCharacter* player = Cast<ASoftDesignTrainingMainCharacter>(Hit.Actor.Get());
+
+			if (player->IsPoweredUp()) {
+				// RUUUUN!!!
+				//UE_LOG(LogTemp, Warning, TEXT("Player PoweredUp: %s"), *Hit.Actor->GetName());
+				AvoidObstacle(Hit);
+			}
+			else {
+				//UE_LOG(LogTemp, Warning, TEXT("Player NotPowered : %s"), *Hit.Actor->GetName());
+				PursueObstacle(Hit);
+			}
+		}
+		else if (Hit.Actor->GetName().Contains("Collectible")) {
+			//UE_LOG(LogTemp, Warning, TEXT("Collectible : %s"), *Hit.Actor->GetName());
+			PursueObstacle(Hit);
+		}
+
+	}
 }
 
 TArray<struct FHitResult> ASDTAIController::DetectObstacle() {
 
 	APawn* pawn = GetPawn();
-	FVector actorLocation = pawn->GetActorLocation();
-
-	FVector Origin;
-	FVector BoundsExtent;
-	pawn->GetActorBounds(false, Origin, BoundsExtent);
-
 	TArray<FHitResult> OutHits;
+	FVector Detectionstart = pawn->GetActorLocation() + (pawn->GetActorForwardVector() * detection_distance);
 
-	// start and end locations
-	FVector Detectionstart = pawn->GetActorLocation() + (pawn->GetActorForwardVector() * SPHERE_OFFSET);
-	//Detectionstart.Z -= BoundsExtent.Z;
-	// create a collision sphere
-	FCollisionShape MyColSphere = FCollisionShape::MakeSphere(SPHERE_RADIUS);
-	// draw collision sphere
-	DrawDebugSphere(GetWorld(), Detectionstart, MyColSphere.GetSphereRadius(), 20, FColor::Purple, false, -1,0);
 
-	// check if something got hit in the sweep
-	GetWorld()->SweepMultiByChannel(OutHits, Detectionstart, Detectionstart, FQuat::Identity, ECC_Pawn, MyColSphere);
+	//Setting up the collision shape
+	FCollisionShape CollisionShape;
+	CollisionShape.ShapeType = ECollisionShape::Sphere;
+	CollisionShape.SetSphere(sphere_radius);
+
+	//Search only for pawns
+	FCollisionObjectQueryParams ObjectQueryParams;
+	ObjectQueryParams.AddObjectTypesToQuery(ECollisionChannel::ECC_Pawn);
+	ObjectQueryParams.AddObjectTypesToQuery(ECollisionChannel::ECC_GameTraceChannel3);
+	ObjectQueryParams.AddObjectTypesToQuery(ECollisionChannel::ECC_GameTraceChannel4);
+	ObjectQueryParams.AddObjectTypesToQuery(ECollisionChannel::ECC_GameTraceChannel5);
+	ObjectQueryParams.AddObjectTypesToQuery(ECollisionChannel::ECC_WorldStatic);
+
+	//Ignore ourselves
+	FCollisionQueryParams CollisionQueryParams;
+	CollisionQueryParams.AddIgnoredActor(this);
+
+	GetWorld()->SweepMultiByObjectType(OutHits, Detectionstart, Detectionstart, FQuat::Identity, ObjectQueryParams, CollisionShape, CollisionQueryParams);
+	
+	DrawDebugSphere(GetWorld(), Detectionstart, CollisionShape.GetSphereRadius(), 20, FColor::Purple, false, -1,0);
+
+	//GetWorld()->SweepMultiByChannel(OutHits, Detectionstart, Detectionstart, FQuat::Identity, ECC_Pawn, MyColSphere);
 	return OutHits;
 }
 
-void ASDTAIController::ComputeSpeedRatio(bool isAccelerating, float distanceFromObstacle) {
+void ASDTAIController::ComputeSpeedRatio(bool isAccelerating, FVector vectorToObstacle) {
 	if (isAccelerating) {
 		speedRatio = speedRatio >= 1.0 ? 1.0: speedRatio * 1.01;
 	}
 	else {
-		speedRatio = 0.5;
+		//speedRatio = speedRatio >= 0.1 ? speedRatio * 0.975 : speedRatio;
+		APawn* pawn = GetPawn();
+		pawn->AddMovementInput(vectorToObstacle.GetSafeNormal(), speedRatio/3);
 	}
 	
 }
@@ -85,28 +123,38 @@ FVector ASDTAIController::GetRelativeDistance(FVector actorPosition, FVector tar
 	return targetPosition - actorPosition;
 }
 
-void ASDTAIController::AvoidObstacle(TArray<struct FHitResult> hitResults) {
-	for (auto& Hit : hitResults)
-	{
+void ASDTAIController::PursueObstacle(FHitResult hit) {
+	APawn* pawn = GetPawn();
+	FVector location = pawn->GetActorLocation();
+	FHitResult outhit;
 
-		// just for dev
-		 if (Hit.Actor->GetName().Contains("Wall") || Hit.Actor->GetName().Contains("Death") || Hit.Actor->GetName().Contains("Main")) {
-			APawn* pawn = GetPawn();
-			FVector2D const turnDirection = FVector2D(FVector::CrossProduct(pawn->GetActorUpVector(), Hit.Normal));
-			FVector tempCo = FVector::CrossProduct(pawn->GetActorForwardVector(), FVector(turnDirection, 0.0f));
-			//UE_LOG(LogTemp, Warning, TEXT("test: %s"), *Hit.Actor->GetName());
-			float W = FMath::Sqrt(2) + FVector::DotProduct(pawn->GetActorForwardVector(), FVector(turnDirection, 0.0f));
-			FQuat orientationQuat = FQuat(tempCo.X, tempCo.Y, tempCo.Z, W);
-			orientationQuat.Normalize();
-			FQuat rotateTo = (orientationQuat) / 7.0f;
-			FRotator deltaRotation = FRotator(rotateTo);
-
-			pawn->AddActorWorldRotation(deltaRotation, false);
-		}
-
-	}
+	FCollisionObjectQueryParams ObjectQueryParams;
+	ObjectQueryParams.AddObjectTypesToQuery(ECollisionChannel::ECC_Pawn);
+	ObjectQueryParams.AddObjectTypesToQuery(ECollisionChannel::ECC_GameTraceChannel3);
+	ObjectQueryParams.AddObjectTypesToQuery(ECollisionChannel::ECC_GameTraceChannel4);
+	ObjectQueryParams.AddObjectTypesToQuery(ECollisionChannel::ECC_GameTraceChannel5);
+	ObjectQueryParams.AddObjectTypesToQuery(ECollisionChannel::ECC_WorldStatic);
+	UE_LOG(LogTemp, Warning, TEXT("Test : %s"), *hit.Actor->GetName());
+	GetWorld()->LineTraceSingleByObjectType(outhit, location, location + hit.GetActor()->GetActorLocation(), ObjectQueryParams);
+	/*if (outhit.) {
+		UE_LOG(LogTemp, Warning, TEXT("No : %s"), *hit.Actor->GetName());
+	}*/
 }
 
+void ASDTAIController::AvoidObstacle(FHitResult hit) {
+		APawn* pawn = GetPawn();
+		FVector turnDirection;
+		if (isTurningRight) 
+			turnDirection = FVector::CrossProduct(hit.Normal, pawn->GetActorUpVector());
+		else
+			turnDirection = FVector::CrossProduct(pawn->GetActorUpVector(), hit.Normal);
 
+		FVector rotationAxis = FVector::CrossProduct(pawn->GetActorForwardVector(), turnDirection);
 
+		pawn->AddActorWorldRotation(FQuat(rotationAxis, 0.05), false);
 
+		FVector vectorToObstacle = GetRelativeDistance(pawn->GetActorLocation(), hit.Actor->GetActorLocation());
+		//DrawDebugLine(GetWorld(), pawn->GetActorLocation(), pawn->GetActorLocation() + vectorToObstacle, FColor::Red, false, -1, 0, 5.0f);
+		//FVector impulseDirection = FVector
+		ComputeSpeedRatio(false, hit.Normal);
+}

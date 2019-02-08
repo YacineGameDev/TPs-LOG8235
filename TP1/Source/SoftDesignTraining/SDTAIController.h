@@ -16,24 +16,28 @@ class SOFTDESIGNTRAINING_API ASDTAIController : public AAIController
     GENERATED_BODY()
 public:
     virtual void Tick(float deltaTime) override;
-	virtual void ComputeSpeedRatio(bool isAccelerating, float distanceFromObstacle = 0);
-
+	virtual void ComputeSpeedRatio(bool isAccelerating, FVector vectorToObstacle);
 	virtual void MoveActor();
 	virtual TArray<struct FHitResult> DetectObstacle();
-	virtual void AvoidObstacle(TArray<struct FHitResult> hitResults);
-	virtual TArray<struct FHitResult> DetectFrontObstacle();
+	virtual void AvoidObstacle(FHitResult hit);
+	virtual void PursueObstacle( FHitResult hit);
 	virtual FVector GetRelativeDistance(FVector actorPosition, FVector targetPosition);
-private:
+	virtual void ComputeStrategy(TArray<struct FHitResult> hitResults);
+	/*UFUNCTION()
+	void ToggleTurningDirection();*/
 
-	float const MAX_SPEED = 250.0f;
-	float const SPHERE_RADIUS = 140;
-	float const SPHERE_OFFSET = 90.0f;
-	float const DETECTION_DISTANCE = 300.0f;
+private:
+	// Distance ou la sphere de l'agent commence a detecter des obstacles (valeur minimum: 0)
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "0.0", UIMin = "0.0"))
+	float detection_distance = 100.0f;
+
+	// Vitesse de l'agent (valeur minimum: 0)
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "0.0", UIMin = "0.0"))
+	float speed = 300.0f;
+	// Rayon de la sphere detection (valeur minimum: 0)
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "0.0", UIMin = "0.0"))
+	float sphere_radius = 140.0f;
 
 	float speedRatio = 1;
-
-	// to remove
-	// float acceleration = MAX_ACCELERATION;
-
-
+	bool isTurningRight = true;
 };
