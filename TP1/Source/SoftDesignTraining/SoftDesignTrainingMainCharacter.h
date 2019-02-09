@@ -3,9 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Kismet/GameplayStatics.h"
 #include "SoftDesignTrainingCharacter.h"
 #include "SoftDesignTrainingMainCharacter.generated.h"
-
 /**
  * 
  */
@@ -41,4 +41,5 @@ protected:
 
     bool m_IsPoweredUp;
     FTimerHandle m_PowerUpTimer;
+	USoundWave* soundToPlay;
 };

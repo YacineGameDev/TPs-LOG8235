@@ -2,12 +2,56 @@
 
 #include "SoftDesignTraining.h"
 #include "SoftDesignTrainingMainCharacter.h"
-
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
+USoundWave* GetSoundWaveFromFile(const FString& filePath)
+{
+	USoundWave* sw = NewObject<USoundWave>(USoundWave::StaticClass());
+
+	if (!sw)
+		return nullptr;
+
+	TArray < uint8 > rawFile;
+	FFileHelper::LoadFileToArray(rawFile, filePath.GetCharArray().GetData());
+
+	FWaveModInfo WaveInfo;
+
+	if (WaveInfo.ReadWaveInfo(rawFile.GetData(), rawFile.Num()))
+	{
+		sw->InvalidateCompressedData();
+
+		sw->RawData.Lock(LOCK_READ_WRITE);
+		void* LockedData = sw->RawData.Realloc(rawFile.Num());
+		FMemory::Memcpy(LockedData, rawFile.GetData(), rawFile.Num());
+		sw->RawData.Unlock();
+
+		int32 DurationDiv = *WaveInfo.pChannels * *WaveInfo.pBitsPerSample * *WaveInfo.pSamplesPerSec;
+		if (DurationDiv)
+		{
+			sw->Duration = *WaveInfo.pWaveDataSize * 8.0f / DurationDiv;
+		}
+		else
+		{
+			sw->Duration = 0.0f;
+		}
+		sw->SampleRate = *WaveInfo.pSamplesPerSec;
+		sw->NumChannels = *WaveInfo.pChannels;
+		sw->RawPCMDataSize = WaveInfo.SampleDataSize;
+		sw->SoundGroup = ESoundGroup::SOUNDGROUP_Default;
+	}
+	else {
+		return nullptr;
+	}
+
+	return sw;
+}
+
 ASoftDesignTrainingMainCharacter::ASoftDesignTrainingMainCharacter()
 {
+	FString path = FString("Source/SoftDesignTraining/Sound/mario-sound.wav");
+	soundToPlay = GetSoundWaveFromFile(FPaths::GameDir() + path);
+
     m_IsPoweredUp = false;
 
     // Create a camera boom...
@@ -37,6 +81,9 @@ void ASoftDesignTrainingMainCharacter::OnBeginOverlap(UPrimitiveComponent* Overl
 
 void ASoftDesignTrainingMainCharacter::OnCollectPowerUp()
 {
+	
+	UGameplayStatics::PlaySound2D(GetWorld(), soundToPlay);
+
     m_IsPoweredUp = true;
 
     GetMesh()->SetMaterial(0, m_PoweredUpMaterial);
