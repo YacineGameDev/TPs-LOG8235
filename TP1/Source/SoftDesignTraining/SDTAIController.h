@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
-
+#include "Engine.h"
 #include "SDTAIController.generated.h"
 
 /**
@@ -15,6 +15,9 @@ class SOFTDESIGNTRAINING_API ASDTAIController : public AAIController
 {
     GENERATED_BODY()
 public:
+
+	virtual void BeginPlay() override;
+
     virtual void Tick(float deltaTime) override;
 	virtual void ComputeImpulsion(FVector impulsionDirection, float impulsionRatio = 0);
 	virtual void MoveActor();
@@ -24,8 +27,10 @@ public:
 
 	virtual FVector GetRelativeVector(FVector actorPosition, FVector targetPosition);
 	virtual void ComputeStrategy(TArray<struct FHitResult> hitResults);
-	/*UFUNCTION()
-	void ToggleTurningDirection();*/
+	virtual void displayInfos();
+
+	UFUNCTION()
+	virtual void incrementTimer();
 
 private:
 	// Distance ou la sphere de l'agent commence a detecter des obstacles (valeur minimum: 0)
@@ -38,5 +43,9 @@ private:
 	// Rayon de la sphere detection (valeur minimum: 0)
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0.0", UIMin = "0.0"))
 	float sphere_radius = 180.0f;
+	
+	FTimerHandle timerHandle;
+	int timer = 0; //timer in seconds
+	
 	bool isTurningRight = true;
 };

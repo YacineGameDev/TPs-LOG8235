@@ -3,6 +3,7 @@
 #include "SoftDesignTraining.h"
 #include "SoftDesignTrainingCharacter.h"
 #include "SoftDesignTrainingMainCharacter.h"
+#include "SDTAIController.h"
 #include "SDTUtils.h"
 #include "DrawDebugHelpers.h"
 #include "SDTCollectible.h"
@@ -19,12 +20,14 @@ void ASoftDesignTrainingCharacter::BeginPlay()
 
     GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ASoftDesignTrainingCharacter::OnBeginOverlap);
     m_StartingPosition = GetActorLocation();
+
 }
 
 void ASoftDesignTrainingCharacter::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
     if (OtherComponent->GetCollisionObjectType() == COLLISION_DEATH_OBJECT)
     {
+		IncrementDeathToll();
         SetActorLocation(m_StartingPosition);
     }
     else if(ASDTCollectible* collectibleActor = Cast<ASDTCollectible>(OtherActor))
@@ -41,4 +44,12 @@ void ASoftDesignTrainingCharacter::OnBeginOverlap(UPrimitiveComponent* Overlappe
         if(mainCharacter->IsPoweredUp())
             SetActorLocation(m_StartingPosition);
     }
+}
+
+void ASoftDesignTrainingCharacter::IncrementScore() {
+	score++;
+}
+
+void ASoftDesignTrainingCharacter::IncrementDeathToll() {
+	death_toll++;
 }

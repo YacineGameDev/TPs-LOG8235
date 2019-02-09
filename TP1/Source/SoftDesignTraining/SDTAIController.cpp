@@ -6,16 +6,26 @@
 #include "SDTCollectible.h"
 #include "DrawDebugHelpers.h"
 #include "SoftDesignTrainingMainCharacter.h"
+#include "SoftDesignTrainingCharacter.h"
+
+
+void ASDTAIController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	GetWorld()->GetTimerManager().SetTimer(timerHandle, this, &ASDTAIController::incrementTimer, 1.0f, true);
+
+}
 
 void ASDTAIController::Tick(float deltaTime)
 {
-	if (GetPawn()->GetName().Contains("BP_SDTAICharacter2")) {
-		MoveActor();
-		TArray<struct FHitResult> hitResultsSphere = DetectObstacle();
-		if (hitResultsSphere.Num() != 0) {
-			ComputeStrategy(hitResultsSphere);
-		}
-	}
+
+	displayInfos();
+	MoveActor();
+	TArray<struct FHitResult> hitResultsSphere = DetectObstacle();
+	if (hitResultsSphere.Num() != 0) {
+		ComputeStrategy(hitResultsSphere);
+    }
 }
 
 void ASDTAIController::MoveActor() {
@@ -24,13 +34,53 @@ void ASDTAIController::MoveActor() {
 	ComputeImpulsion(direction, 1.0f);
 }
 
-/*void ASDTAIController::ToggleTurningDirection() {
-	if (FMath::Rand() % 2) {
-	}
-	isTurningRight = !isTurningRight;
-	UE_LOG(LogTemp, Display, TEXT("!!!!!!!!!!!!!!!!!!!!!TEST!!!!!!!!!!!!!!!!!!!!!!!!"));
+void ASDTAIController::incrementTimer() {
+	timer++;
+}
 
-}*/
+
+void ASDTAIController::displayInfos() {
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASoftDesignTrainingCharacter::StaticClass(), FoundActors);
+	
+	FString timerMinutes;
+	FString timerSeconds;
+
+	if (floor(timer / 60) >= 10)
+		timerMinutes = FString::FromInt(floor(timer / 60));
+	else 
+		timerMinutes = FString::Printf(TEXT("0")) + FString::FromInt(floor(timer / 60));
+
+	if (timer % 60 >= 10)
+		timerSeconds = FString::FromInt(timer % 60);
+	else
+		timerSeconds = FString::Printf(TEXT("0")) + FString::FromInt(timer % 60);
+
+
+	FString message = FString::Printf(TEXT("Temps Ecoule: ")) + timerMinutes + FString::Printf(TEXT(":")) + timerSeconds + FString::Printf(TEXT("\n"));
+
+	for (int i = 0; i < FoundActors.Num(); i++) {
+		ASoftDesignTrainingCharacter* player = Cast<ASoftDesignTrainingCharacter>(FoundActors[i]);
+
+		FString name = player->GetName();
+		int pawnScore = player->GetScore();
+		int deatToll = player->GetDeathToll();
+
+		message += name + FString::Printf(TEXT(" Details:\nScore: ")) + FString::FromInt(pawnScore) + FString::Printf(TEXT("\nNb Morts: ")) + FString::FromInt(deatToll);
+
+		if (i != FoundActors.Num() - 1) {
+			message += FString::Printf(TEXT("\n"));
+		}
+	}
+
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(0, 0.5f, FColor::Red, message);
+
+	}
+
+}
 
 void ASDTAIController::ComputeStrategy(TArray<struct FHitResult> hitResults) {
 	for (auto& Hit : hitResults)
@@ -148,3 +198,4 @@ void ASDTAIController::AvoidObstacle(FHitResult hit) {
 		//FVector impulseDirection = FVector
 		ComputeImpulsion(hit.Normal, 0.3);
 }
+// Fill out your copyright notice in the Description page of Project Settings.
