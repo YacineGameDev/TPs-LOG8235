@@ -38,5 +38,5 @@ private:
 	// Rayon de la sphere detection (valeur minimum: 0)
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0.0", UIMin = "0.0"))
 	float sphere_radius = 180.0f;
-	bool isTurningRight = false;
+	bool isTurningRight = true;
 };

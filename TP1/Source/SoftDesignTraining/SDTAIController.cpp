@@ -53,8 +53,8 @@ USoundWave* GetSoundWaveFromFile(const FString& filePath)
 void ASDTAIController::Tick(float deltaTime)
 {
 	if (isTurningRight) {
-		FString path = FString("Games/SoftDesignTraining/Source/SoftDesignTraining/Sound/mario-sound.wav");
-		UGameplayStatics::PlaySound2D(GetWorld(), GetSoundWaveFromFile(FPaths::GameDir() + path));
+		FString path = FString("C:/Users/TomAv/Desktop/DepotGit/TPs-LOG8235/TP1/Source/SoftDesignTraining/Sound/mario-sound.wav");
+		UGameplayStatics::PlaySound2D(GetWorld(), GetSoundWaveFromFile(path));
 		isTurningRight = false;
 	}
 
