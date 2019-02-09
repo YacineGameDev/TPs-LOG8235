@@ -182,7 +182,7 @@ void ASDTAIController::PursueObstacle(FHitResult hit) {
 		FVector turnDirection = -FVector::CrossProduct(hit.Normal, pawn->GetActorUpVector());
 		FVector rotationAxis = FVector::CrossProduct(turnDirection, pawn->GetActorForwardVector());
 		pawn->AddActorWorldRotation(FQuat(rotationAxis, 0.019), false);
-		ComputeImpulsion(false, GetRelativeVector(location, hit.Actor->GetActorLocation()), 0.03);
+		ComputeImpulsion(false, GetRelativeVector(location, hit.Actor->GetActorLocation()), 0.05);
 	}
 }
 

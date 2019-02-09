@@ -30,7 +30,7 @@ public:
 private:
 	// Distance ou la sphere de l'agent commence a detecter des obstacles (valeur minimum: 0)
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0.0", UIMin = "0.0"))
-	float detection_distance = 60.0f;
+	float detection_distance = 40.0f;
 
 	// Vitesse de l'agent (valeur minimum: 0)
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0.0", UIMin = "0.0"))
