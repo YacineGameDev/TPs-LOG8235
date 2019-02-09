@@ -3,6 +3,7 @@
 #include "SoftDesignTraining.h"
 #include "SDTAIController.h"
 #include "PhysicsHelpers.h"
+#include "SDTCollectible.h"
 #include "DrawDebugHelpers.h"
 #include "SoftDesignTrainingMainCharacter.h"
 #include "Kismet/GameplayStatics.h"
@@ -24,7 +25,7 @@ void ASDTAIController::Tick(float deltaTime)
 			ComputeStrategy(hitResultsSphere);
 		}
 		else {
-			ComputeSpeedRatio(true, FVector::ZeroVector);
+			ComputeImpulsion(true, FVector::ZeroVector);
 		}
 	}
 }
@@ -69,7 +70,9 @@ void ASDTAIController::ComputeStrategy(TArray<struct FHitResult> hitResults) {
 		}
 		else if (Hit.Actor->GetName().Contains("Collectible")) {
 			//UE_LOG(LogTemp, Warning, TEXT("Collectible : %s"), *Hit.Actor->GetName());
-			PursueObstacle(Hit);
+			ASDTCollectible* pickUp = Cast< ASDTCollectible>(Hit.Actor.Get());
+			if (!pickUp->IsOnCooldown())
+				PursueObstacle(Hit);
 		}
 
 	}
@@ -107,38 +110,40 @@ TArray<struct FHitResult> ASDTAIController::DetectObstacle() {
 	return OutHits;
 }
 
-void ASDTAIController::ComputeSpeedRatio(bool isAccelerating, FVector vectorToObstacle) {
-	if (isAccelerating) {
-		speedRatio = speedRatio >= 1.0 ? 1.0: speedRatio * 1.01;
-	}
-	else {
-		//speedRatio = speedRatio >= 0.1 ? speedRatio * 0.975 : speedRatio;
-		APawn* pawn = GetPawn();
-		pawn->AddMovementInput(vectorToObstacle.GetSafeNormal(), speedRatio/3);
-	}
-	
+void ASDTAIController::ComputeImpulsion(bool isAccelerating, FVector impulsionDirection, float impulsionRatio) {
+	APawn* pawn = GetPawn();
+	pawn->AddMovementInput(impulsionDirection.GetSafeNormal(), impulsionRatio);
+
 }
 
-FVector ASDTAIController::GetRelativeDistance(FVector actorPosition, FVector targetPosition) {
+FVector ASDTAIController::GetRelativeVector(FVector actorPosition, FVector targetPosition) {
 	return targetPosition - actorPosition;
 }
 
 void ASDTAIController::PursueObstacle(FHitResult hit) {
 	APawn* pawn = GetPawn();
 	FVector location = pawn->GetActorLocation();
-	FHitResult outhit;
 
+	FHitResult outhit;
 	FCollisionObjectQueryParams ObjectQueryParams;
 	ObjectQueryParams.AddObjectTypesToQuery(ECollisionChannel::ECC_Pawn);
 	ObjectQueryParams.AddObjectTypesToQuery(ECollisionChannel::ECC_GameTraceChannel3);
 	ObjectQueryParams.AddObjectTypesToQuery(ECollisionChannel::ECC_GameTraceChannel4);
 	ObjectQueryParams.AddObjectTypesToQuery(ECollisionChannel::ECC_GameTraceChannel5);
 	ObjectQueryParams.AddObjectTypesToQuery(ECollisionChannel::ECC_WorldStatic);
-	UE_LOG(LogTemp, Warning, TEXT("Test : %s"), *hit.Actor->GetName());
-	GetWorld()->LineTraceSingleByObjectType(outhit, location, location + hit.GetActor()->GetActorLocation(), ObjectQueryParams);
-	/*if (outhit.) {
-		UE_LOG(LogTemp, Warning, TEXT("No : %s"), *hit.Actor->GetName());
-	}*/
+	FCollisionQueryParams CollisionQueryParams;
+	CollisionQueryParams.AddIgnoredActor(this);
+	CollisionQueryParams.AddIgnoredActor(this->GetCharacter());
+
+	GetWorld()->LineTraceSingleByObjectType(outhit, location, hit.GetActor()->GetActorLocation(), ObjectQueryParams,CollisionQueryParams);
+	DrawDebugLine(GetWorld(), location, hit.GetActor()->GetActorLocation(), FColor::Red, false, -1, 0, 5.0f);
+
+	if (outhit.GetActor() == hit.GetActor()) {
+		FVector turnDirection = -FVector::CrossProduct(hit.Normal, pawn->GetActorUpVector());
+		FVector rotationAxis = FVector::CrossProduct(turnDirection, pawn->GetActorForwardVector());
+		pawn->AddActorWorldRotation(FQuat(rotationAxis, 0.019), false);
+		ComputeImpulsion(false, GetRelativeVector(location, hit.Actor->GetActorLocation()), 0.03);
+	}
 }
 
 void ASDTAIController::AvoidObstacle(FHitResult hit) {
@@ -148,13 +153,12 @@ void ASDTAIController::AvoidObstacle(FHitResult hit) {
 			turnDirection = FVector::CrossProduct(hit.Normal, pawn->GetActorUpVector());
 		else
 			turnDirection = FVector::CrossProduct(pawn->GetActorUpVector(), hit.Normal);
-
 		FVector rotationAxis = FVector::CrossProduct(pawn->GetActorForwardVector(), turnDirection);
-
-		pawn->AddActorWorldRotation(FQuat(rotationAxis, 0.05), false);
-
-		FVector vectorToObstacle = GetRelativeDistance(pawn->GetActorLocation(), hit.Actor->GetActorLocation());
+		if (!hit.Actor->GetName().Contains("Main")) {
+			pawn->AddActorWorldRotation(FQuat(rotationAxis, 0.02), false);
+		}
+		FVector vectorToObstacle = GetRelativeVector(pawn->GetActorLocation(), hit.Actor->GetActorLocation());
 		//DrawDebugLine(GetWorld(), pawn->GetActorLocation(), pawn->GetActorLocation() + vectorToObstacle, FColor::Red, false, -1, 0, 5.0f);
 		//FVector impulseDirection = FVector
-		ComputeSpeedRatio(false, hit.Normal);
+		ComputeImpulsion(false, hit.Normal, 0.3);
 }
