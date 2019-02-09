@@ -15,7 +15,7 @@ void ASDTAIController::BeginPlay()
 
 	GetWorld()->GetTimerManager().SetTimer(timerHandle, this, &ASDTAIController::incrementTimer, 1.0f, true);
 
-	GetWorld()->GetTimerManager().SetTimer(timerHandle, this, &ASDTAIController::toggleDirection, 3.0f, true);
+	GetWorld()->GetTimerManager().SetTimer(turningHandle, this, &ASDTAIController::toggleDirection, 5.0f, true);
 }
 
 void ASDTAIController::Tick(float deltaTime)

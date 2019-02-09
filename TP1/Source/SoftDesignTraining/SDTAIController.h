@@ -50,5 +50,6 @@ private:
 	FTimerHandle timerHandle;
 	int timer = 0; //timer in seconds
 	
+	FTimerHandle turningHandle;
 	bool isTurningRight = true;
 };
