@@ -16,7 +16,7 @@ class SOFTDESIGNTRAINING_API ASDTAIController : public AAIController
     GENERATED_BODY()
 public:
     virtual void Tick(float deltaTime) override;
-	virtual void ComputeImpulsion(bool isAccelerating, FVector impulsionDirection, float impulsionRatio = 0);
+	virtual void ComputeImpulsion(FVector impulsionDirection, float impulsionRatio = 0);
 	virtual void MoveActor();
 	virtual TArray<struct FHitResult> DetectObstacle();
 	virtual void AvoidObstacle(FHitResult hit);
@@ -37,8 +37,6 @@ private:
 	float speed = 250.0f;
 	// Rayon de la sphere detection (valeur minimum: 0)
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0.0", UIMin = "0.0"))
-	float sphere_radius = 170.0f;
-
-	float speedRatio = 1;
+	float sphere_radius = 180.0f;
 	bool isTurningRight = false;
 };

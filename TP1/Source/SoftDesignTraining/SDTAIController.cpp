@@ -64,9 +64,6 @@ void ASDTAIController::Tick(float deltaTime)
 		if (hitResultsSphere.Num() != 0) {
 			ComputeStrategy(hitResultsSphere);
 		}
-		else {
-			ComputeImpulsion(true, FVector::ZeroVector);
-		}
 	}
 }
 
@@ -74,10 +71,7 @@ void ASDTAIController::Tick(float deltaTime)
 void ASDTAIController::MoveActor() {
 	APawn* pawn = GetPawn();
 	FVector direction = pawn->GetActorForwardVector();
-	float velocity = pawn->GetVelocity().Size();
-	if (velocity < speed) {
-		pawn->AddMovementInput(direction, speedRatio);
-	}
+	ComputeImpulsion(direction, 1.0f);
 }
 
 /*void ASDTAIController::ToggleTurningDirection() {
@@ -150,10 +144,12 @@ TArray<struct FHitResult> ASDTAIController::DetectObstacle() {
 	return OutHits;
 }
 
-void ASDTAIController::ComputeImpulsion(bool isAccelerating, FVector impulsionDirection, float impulsionRatio) {
+void ASDTAIController::ComputeImpulsion(FVector impulsionDirection, float impulsionRatio) {
 	APawn* pawn = GetPawn();
-	pawn->AddMovementInput(impulsionDirection.GetSafeNormal(), impulsionRatio);
-
+	float velocity = pawn->GetVelocity().Size();
+	if (velocity < speed) {
+		pawn->AddMovementInput(impulsionDirection.GetSafeNormal(), impulsionRatio);
+	}
 }
 
 FVector ASDTAIController::GetRelativeVector(FVector actorPosition, FVector targetPosition) {
@@ -182,7 +178,7 @@ void ASDTAIController::PursueObstacle(FHitResult hit) {
 		FVector turnDirection = -FVector::CrossProduct(hit.Normal, pawn->GetActorUpVector());
 		FVector rotationAxis = FVector::CrossProduct(turnDirection, pawn->GetActorForwardVector());
 		pawn->AddActorWorldRotation(FQuat(rotationAxis, 0.019), false);
-		ComputeImpulsion(false, GetRelativeVector(location, hit.Actor->GetActorLocation()), 0.05);
+		ComputeImpulsion(GetRelativeVector(location, hit.Actor->GetActorLocation()), 1.0f);
 	}
 }
 
@@ -200,5 +196,5 @@ void ASDTAIController::AvoidObstacle(FHitResult hit) {
 		FVector vectorToObstacle = GetRelativeVector(pawn->GetActorLocation(), hit.Actor->GetActorLocation());
 		//DrawDebugLine(GetWorld(), pawn->GetActorLocation(), pawn->GetActorLocation() + vectorToObstacle, FColor::Red, false, -1, 0, 5.0f);
 		//FVector impulseDirection = FVector
-		ComputeImpulsion(false, hit.Normal, 0.3);
+		ComputeImpulsion(hit.Normal, 0.3);
 }
