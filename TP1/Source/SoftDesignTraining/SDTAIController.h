@@ -32,6 +32,9 @@ public:
 	UFUNCTION()
 	virtual void incrementTimer();
 
+	UFUNCTION()
+	virtual void toggleDirection();
+
 private:
 	// Distance ou la sphere de l'agent commence a detecter des obstacles (valeur minimum: 0)
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0.0", UIMin = "0.0"))
