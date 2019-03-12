@@ -18,7 +18,16 @@ ASDTAIController::ASDTAIController(const FObjectInitializer& ObjectInitializer)
 
 void ASDTAIController::GoToBestTarget(float deltaTime)
 {
-    //Move to target depending on current behavior
+	if (BestTarget != nullptr) {
+		OnMoveToTarget();
+		APawn* selfPawn = GetPawn();
+		UE_LOG(LogTemp, Warning, TEXT("%s is moving to : %s"), *selfPawn->GetName(), *BestTarget->GetName());
+		MoveToActor(BestTarget);
+
+		USDTPathFollowingComponent* pathFollowingComponent = (USDTPathFollowingComponent*)GetPathFollowingComponent();
+		//pathFollowingComponent->s
+		pathFollowingComponent->FollowPathSegment(deltaTime);
+	}
 }
 
 void ASDTAIController::OnMoveToTarget()
@@ -72,6 +81,13 @@ void ASDTAIController::UpdatePlayerInteraction(float deltaTime)
 
     //Set behavior based on hit
 
+	/*if (detectionHit.GetActor() == nullptr && selfPawn->GetName() == "BP_SDTAICharacter2") {
+		UE_LOG(LogTemp, Warning, TEXT("test"));
+	}*/
+	if (detectionHit.GetActor() != BestTarget && detectionHit.GetActor() !=  nullptr) { // on trouve une nouvelle best target, la poursuite continue 
+		UE_LOG(LogTemp, Warning, TEXT("%s is seing something new : %s"), *selfPawn->GetName(), *detectionHit.GetActor()->GetName());
+		BestTarget = detectionHit.GetActor();
+	}
     DrawDebugCapsule(GetWorld(), detectionStartLocation + m_DetectionCapsuleHalfLength * selfPawn->GetActorForwardVector(), m_DetectionCapsuleHalfLength, m_DetectionCapsuleRadius, selfPawn->GetActorQuat() * selfPawn->GetActorUpVector().ToOrientationQuat(), FColor::Blue);
 }
 
