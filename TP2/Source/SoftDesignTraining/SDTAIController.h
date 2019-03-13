@@ -49,6 +49,7 @@ public:
 public:
     virtual void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result) override;
     void AIStateInterrupted();
+	FVector GetNearestColectibleLocation();
 
 protected:
     void OnMoveToTarget();

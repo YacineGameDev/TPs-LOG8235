@@ -83,12 +83,15 @@ void ASDTAIController::UpdatePlayerInteraction(float deltaTime)
     GetHightestPriorityDetectionHit(allDetectionHits, detectionHit);
 
     //Set behavior based on hit
+	
+	if (detectionHit.GetActor() == nullptr && BestTarget == nullptr) {
+		//UE_LOG(LogTemp, Warning, TEXT("%s is seing nothing"), *selfPawn->GetName());
 
-	/*if (detectionHit.GetActor() == nullptr && selfPawn->GetName() == "BP_SDTAICharacter2") {
-		UE_LOG(LogTemp, Warning, TEXT("test"));
-	}*/
-	if (detectionHit.GetActor() != BestTarget && detectionHit.GetActor() !=  nullptr) { // on trouve une nouvelle best target, la poursuite continue 
-		UE_LOG(LogTemp, Warning, TEXT("%s is seing something new : %s"), *selfPawn->GetName(), *detectionHit.GetActor()->GetName());
+	}
+
+	if (detectionHit.GetActor() != BestTarget && detectionHit.GetActor() !=  nullptr)  // new best target
+	{
+		//UE_LOG(LogTemp, Warning, TEXT("%s is seing something new : %s"), *selfPawn->GetName(), *detectionHit.GetActor()->GetName());
 		BestTarget = detectionHit.GetActor();
 	}
     DrawDebugCapsule(GetWorld(), detectionStartLocation + m_DetectionCapsuleHalfLength * selfPawn->GetActorForwardVector(), m_DetectionCapsuleHalfLength, m_DetectionCapsuleRadius, selfPawn->GetActorQuat() * selfPawn->GetActorUpVector().ToOrientationQuat(), FColor::Blue);
@@ -118,4 +121,8 @@ void ASDTAIController::AIStateInterrupted()
 {
     StopMovement();
     m_ReachedTarget = true;
+}
+
+FVector ASDTAIController::GetNearestColectibleLocation() {
+	GetWorld()->get
 }
