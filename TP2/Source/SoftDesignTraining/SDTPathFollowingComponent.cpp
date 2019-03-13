@@ -15,6 +15,7 @@ USDTPathFollowingComponent::USDTPathFollowingComponent(const FObjectInitializer&
 
 void USDTPathFollowingComponent::FollowPathSegment(float DeltaTime)
 {
+
     const TArray<FNavPathPoint>& points = Path->GetPathPoints();
     const FNavPathPoint& segmentStart = points[MoveSegmentStartIndex];
 
@@ -24,8 +25,8 @@ void USDTPathFollowingComponent::FollowPathSegment(float DeltaTime)
     }
     else
     {
-        //update navigation along path
-    }
+		Super::FollowPathSegment(DeltaTime);
+	}
 }
 
 void USDTPathFollowingComponent::SetMoveSegment(int32 segmentStartIndex)

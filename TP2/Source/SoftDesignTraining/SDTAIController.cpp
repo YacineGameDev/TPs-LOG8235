@@ -23,10 +23,13 @@ void ASDTAIController::GoToBestTarget(float deltaTime)
 		APawn* selfPawn = GetPawn();
 		UE_LOG(LogTemp, Warning, TEXT("%s is moving to : %s"), *selfPawn->GetName(), *BestTarget->GetName());
 		MoveToActor(BestTarget);
-
 		USDTPathFollowingComponent* pathFollowingComponent = (USDTPathFollowingComponent*)GetPathFollowingComponent();
-		//pathFollowingComponent->s
-		pathFollowingComponent->FollowPathSegment(deltaTime);
+
+		const auto path = pathFollowingComponent->GetPath();
+		if (path.IsValid()) {
+			pathFollowingComponent->FollowPathSegment(deltaTime);
+		}
+
 	}
 }
 
