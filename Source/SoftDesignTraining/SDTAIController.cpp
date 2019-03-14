@@ -123,6 +123,6 @@ void ASDTAIController::AIStateInterrupted()
     m_ReachedTarget = true;
 }
 
-/*FVector ASDTAIController::GetNearestColectibleLocation() {
+FVector ASDTAIController::GetNearestColectibleLocation() {
 	GetWorld()->get
-}*/
+}
