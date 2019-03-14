@@ -143,11 +143,11 @@ void ASDTAIController::AIStateInterrupted()
 AActor* ASDTAIController::GetNearestColectible() {
 	UWorld* word = GetWorld();
 	APawn* selfPawn = GetPawn();
-	TArray<AActor*> foundActors;
-	UGameplayStatics::GetAllActorsOfClass(word, ASDTCollectible::StaticClass(), foundActors);
-	AActor* nearestCollectible = *foundActors.GetData();
+	TArray<AActor*> foundCollectibles;
+	UGameplayStatics::GetAllActorsOfClass(word, ASDTCollectible::StaticClass(), foundCollectibles);
+	AActor* nearestCollectible = *foundCollectibles.GetData();
 
-	for (AActor* collectible : foundActors) 
+	for (AActor* collectible : foundCollectibles)
 	{
 		if(nearestCollectible->GetSquaredDistanceTo(selfPawn) > collectible->GetSquaredDistanceTo(selfPawn))
 		{
