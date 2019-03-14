@@ -22,15 +22,16 @@ void ASDTAIController::GoToBestTarget(float deltaTime)
 		OnMoveToTarget();
 		APawn* selfPawn = GetPawn();
 		//UE_LOG(LogTemp, Warning, TEXT("%s is moving to : %s"), *selfPawn->GetName(), *bestTarget->GetName());
-		EPathFollowingRequestResult::Type result = MoveToActor(bestTarget);
+		EPathFollowingRequestResult::Type initResult = MoveToActor(bestTarget);
 		USDTPathFollowingComponent* pathFollowingComponent = (USDTPathFollowingComponent*)GetPathFollowingComponent();
-		if (selfPawn->GetName() == "BP_SDTAICharacter4" && result == 0) {
+		if (selfPawn->GetName() == "BP_SDTAICharacter4" && initResult == 0) {
 			UE_LOG(LogTemp, Warning, TEXT("Failed"));
 		}
-		else if (selfPawn->GetName() == "BP_SDTAICharacter4" && result == 1) {
+		else if (selfPawn->GetName() == "BP_SDTAICharacter4" && initResult == 1) {
 			UE_LOG(LogTemp, Warning, TEXT("AlreadyAtGoal"));
+			const FPathFollowingResult pathFollowingResult;			
 		}
-		else if (selfPawn->GetName() == "BP_SDTAICharacter4" && result == 2) {
+		else if (selfPawn->GetName() == "BP_SDTAICharacter4" && initResult == 2) {
 			UE_LOG(LogTemp, Warning, TEXT("RequestSuccessful"));
 			pathFollowingComponent->FollowPathSegment(deltaTime);
 		}
