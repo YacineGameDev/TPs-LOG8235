@@ -21,11 +21,17 @@ void ASDTAIController::GoToBestTarget(float deltaTime)
 	if (bestTarget != nullptr) {
 		OnMoveToTarget();
 		APawn* selfPawn = GetPawn();
-		UE_LOG(LogTemp, Warning, TEXT("%s is moving to : %s"), *selfPawn->GetName(), *bestTarget->GetName());
-		MoveToActor(bestTarget);
+		//UE_LOG(LogTemp, Warning, TEXT("%s is moving to : %s"), *selfPawn->GetName(), *bestTarget->GetName());
+		EPathFollowingRequestResult::Type result = MoveToActor(bestTarget);
 		USDTPathFollowingComponent* pathFollowingComponent = (USDTPathFollowingComponent*)GetPathFollowingComponent();
-		const auto path = pathFollowingComponent->GetPath();
-		if (path.IsValid()) {
+		if (selfPawn->GetName() == "BP_SDTAICharacter4" && result == 0) {
+			UE_LOG(LogTemp, Warning, TEXT("Failed"));
+		}
+		else if (selfPawn->GetName() == "BP_SDTAICharacter4" && result == 1) {
+			UE_LOG(LogTemp, Warning, TEXT("AlreadyAtGoal"));
+		}
+		else if (selfPawn->GetName() == "BP_SDTAICharacter4" && result == 2) {
+			UE_LOG(LogTemp, Warning, TEXT("RequestSuccessful"));
 			pathFollowingComponent->FollowPathSegment(deltaTime);
 		}
 
@@ -154,6 +160,5 @@ AActor* ASDTAIController::GetNearestColectible() {
 			nearestCollectible = collectible;
 		}
 	}
-	UE_LOG(LogTemp, Warning, TEXT("%s is going to : %s"), *selfPawn->GetName(), *nearestCollectible->GetName());
 	return nearestCollectible;
 }
