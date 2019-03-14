@@ -72,7 +72,12 @@ Build/*/**
 # Compiled source files for the engine to use
 */Intermediate/*
 Plugins/*/Intermediate/*
-*/Content/*
+*/Content/Collections
+*/Content/Developers
+*/Content/Maps
+*/Content/StarterContent
+*/Content/TopDown
+*/Content/Mannequin
 */Config/*
 
 # Cache files for the editor to use
