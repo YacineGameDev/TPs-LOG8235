@@ -18,13 +18,12 @@ ASDTAIController::ASDTAIController(const FObjectInitializer& ObjectInitializer)
 
 void ASDTAIController::GoToBestTarget(float deltaTime)
 {
-	if (BestTarget != nullptr) {
+	if (bestTarget != nullptr) {
 		OnMoveToTarget();
 		APawn* selfPawn = GetPawn();
-		UE_LOG(LogTemp, Warning, TEXT("%s is moving to : %s"), *selfPawn->GetName(), *BestTarget->GetName());
-		MoveToActor(BestTarget);
+		UE_LOG(LogTemp, Warning, TEXT("%s is moving to : %s"), *selfPawn->GetName(), *bestTarget->GetName());
+		MoveToActor(bestTarget);
 		USDTPathFollowingComponent* pathFollowingComponent = (USDTPathFollowingComponent*)GetPathFollowingComponent();
-
 		const auto path = pathFollowingComponent->GetPath();
 		if (path.IsValid()) {
 			pathFollowingComponent->FollowPathSegment(deltaTime);
@@ -103,15 +102,14 @@ void ASDTAIController::UpdatePlayerInteraction(float deltaTime)
 
     //Set behavior based on hit
 	
-	if (detectionHit.GetActor() == nullptr && BestTarget == nullptr) {
-		//UE_LOG(LogTemp, Warning, TEXT("%s is seing nothing"), *selfPawn->GetName());
-
+	if (detectionHit.GetActor() == nullptr && bestTarget == nullptr) {
+		bestTarget = GetNearestColectible();
 	}
 
-	if (detectionHit.GetActor() != BestTarget && detectionHit.GetActor() !=  nullptr)  // new best target
+	if (detectionHit.GetActor() != bestTarget && detectionHit.GetActor() !=  nullptr)  // new best target
 	{
 		//UE_LOG(LogTemp, Warning, TEXT("%s is seing something new : %s"), *selfPawn->GetName(), *detectionHit.GetActor()->GetName());
-		BestTarget = detectionHit.GetActor();
+		bestTarget = detectionHit.GetActor();
 	}
     DrawDebugCapsule(GetWorld(), detectionStartLocation + m_DetectionCapsuleHalfLength * selfPawn->GetActorForwardVector(), m_DetectionCapsuleHalfLength, m_DetectionCapsuleRadius, selfPawn->GetActorQuat() * selfPawn->GetActorUpVector().ToOrientationQuat(), FColor::Blue);
 }
@@ -142,6 +140,20 @@ void ASDTAIController::AIStateInterrupted()
     m_ReachedTarget = true;
 }
 
-/*FVector ASDTAIController::GetNearestColectibleLocation() {
-	GetWorld()->get
-}*/
+AActor* ASDTAIController::GetNearestColectible() {
+	UWorld* word = GetWorld();
+	APawn* selfPawn = GetPawn();
+	TArray<AActor*> foundActors;
+	UGameplayStatics::GetAllActorsOfClass(word, ASDTCollectible::StaticClass(), foundActors);
+	AActor* nearestCollectible = *foundActors.GetData();
+
+	for (AActor* collectible : foundActors) 
+	{
+		if(nearestCollectible->GetSquaredDistanceTo(selfPawn) > collectible->GetSquaredDistanceTo(selfPawn))
+		{
+			nearestCollectible = collectible;
+		}
+	}
+	UE_LOG(LogTemp, Warning, TEXT("%s is going to : %s"), *selfPawn->GetName(), *nearestCollectible->GetName());
+	return nearestCollectible;
+}

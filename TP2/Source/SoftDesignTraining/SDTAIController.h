@@ -17,7 +17,7 @@ class SOFTDESIGNTRAINING_API ASDTAIController : public ASDTBaseAIController
 public:
     ASDTAIController(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	AActor* BestTarget;
+	AActor* bestTarget;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
     float m_DetectionCapsuleHalfLength = 500.f;
@@ -49,7 +49,7 @@ public:
 public:
     virtual void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result) override;
     void AIStateInterrupted();
-	FVector GetNearestColectibleLocation();
+	AActor* GetNearestColectible();
 
 protected:
     void OnMoveToTarget();
