@@ -47,7 +47,26 @@ void ASDTAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollow
 
 void ASDTAIController::ShowNavigationPath()
 {
-    //Show current navigation path DrawDebugLine and DrawDebugSphere
+	//Show current navigation path DrawDebugLine and DrawDebugSphere
+	USDTPathFollowingComponent* pathFollowingComponent = (USDTPathFollowingComponent*)GetPathFollowingComponent();
+	const auto path = pathFollowingComponent->GetPath();
+	UWorld* word = GetWorld();
+	const TArray<FNavPathPoint>& points = path->GetPathPoints();
+	TArray<FVector> pointsLocation;
+	FVector previousPointLocation = {0, 0, 0};
+	for (const FNavPathPoint& point : points) 
+	{
+		DrawDebugSphere(word, point.Location, 10, 30, FColor::Red);
+		if (previousPointLocation.IsZero()) 
+		{
+			previousPointLocation = point.Location;
+		}
+		else
+		{
+			DrawDebugLine(word, previousPointLocation, point.Location, FColor::Red);
+			previousPointLocation = point.Location;
+		}
+	}
 }
 
 void ASDTAIController::ChooseBehavior(float deltaTime)
