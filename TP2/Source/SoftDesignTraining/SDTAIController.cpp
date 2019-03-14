@@ -56,7 +56,7 @@ void ASDTAIController::ShowNavigationPath()
 	FVector previousPointLocation = {0, 0, 0};
 	for (const FNavPathPoint& point : points) 
 	{
-		DrawDebugSphere(word, point.Location, 10, 30, FColor::Red);
+		DrawDebugSphere(word, point.Location, 10, 30, FColor::Purple);
 		if (previousPointLocation.IsZero()) 
 		{
 			previousPointLocation = point.Location;
