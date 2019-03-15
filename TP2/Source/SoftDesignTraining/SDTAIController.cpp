@@ -20,22 +20,6 @@ void ASDTAIController::GoToBestTarget(float deltaTime)
 {
 	if (bestTarget != nullptr) {
 		OnMoveToTarget();
-		APawn* selfPawn = GetPawn();
-		//UE_LOG(LogTemp, Warning, TEXT("%s is moving to : %s"), *selfPawn->GetName(), *bestTarget->GetName());
-		EPathFollowingRequestResult::Type initResult = MoveToActor(bestTarget);
-		USDTPathFollowingComponent* pathFollowingComponent = (USDTPathFollowingComponent*)GetPathFollowingComponent();
-		if (selfPawn->GetName() == "BP_SDTAICharacter4" && initResult == 0) {
-			UE_LOG(LogTemp, Warning, TEXT("Failed"));
-		}
-		else if (selfPawn->GetName() == "BP_SDTAICharacter4" && initResult == 1) {
-			UE_LOG(LogTemp, Warning, TEXT("AlreadyAtGoal"));
-			const FPathFollowingResult pathFollowingResult;			
-		}
-		else if (selfPawn->GetName() == "BP_SDTAICharacter4" && initResult == 2) {
-			UE_LOG(LogTemp, Warning, TEXT("RequestSuccessful"));
-			pathFollowingComponent->FollowPathSegment(deltaTime);
-		}
-
 	}
 }
 
@@ -47,7 +31,9 @@ void ASDTAIController::OnMoveToTarget()
 void ASDTAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result)
 {
     Super::OnMoveCompleted(RequestID, Result);
-
+	APawn* selfPawn = GetPawn();
+	UE_LOG(LogTemp, Warning, TEXT("%s has finish his move"), *selfPawn->GetName());
+	bestTarget = nullptr;
     m_ReachedTarget = true;
 }
 
@@ -56,22 +42,25 @@ void ASDTAIController::ShowNavigationPath()
 	//Show current navigation path DrawDebugLine and DrawDebugSphere
 	USDTPathFollowingComponent* pathFollowingComponent = (USDTPathFollowingComponent*)GetPathFollowingComponent();
 	const auto path = pathFollowingComponent->GetPath();
-	UWorld* word = GetWorld();
-	const TArray<FNavPathPoint>& points = path->GetPathPoints();
-	TArray<FVector> pointsLocation;
-	FVector previousPointLocation = {0, 0, 0};
-	for (const FNavPathPoint& point : points) 
-	{
-		DrawDebugSphere(word, point.Location, 10, 30, FColor::Purple);
-		if (previousPointLocation.IsZero()) 
+	if (path.IsValid()) {
+		UWorld* word = GetWorld();
+		const TArray<FNavPathPoint>& points = path->GetPathPoints();
+		TArray<FVector> pointsLocation;
+		FVector previousPointLocation = { 0, 0, 0 };
+		for (const FNavPathPoint& point : points)
 		{
-			previousPointLocation = point.Location;
+			DrawDebugSphere(word, point.Location, 10, 30, FColor::Purple);
+			if (previousPointLocation.IsZero()) //first iteration
+			{
+				previousPointLocation = point.Location;
+			}
+			else
+			{
+				DrawDebugLine(word, previousPointLocation, point.Location, FColor::Red);
+				previousPointLocation = point.Location;
+			}
 		}
-		else
-		{
-			DrawDebugLine(word, previousPointLocation, point.Location, FColor::Red);
-			previousPointLocation = point.Location;
-		}
+
 	}
 }
 
@@ -108,15 +97,26 @@ void ASDTAIController::UpdatePlayerInteraction(float deltaTime)
     GetHightestPriorityDetectionHit(allDetectionHits, detectionHit);
 
     //Set behavior based on hit
-	
-	if (detectionHit.GetActor() == nullptr && bestTarget == nullptr) {
-		bestTarget = GetNearestColectible();
-	}
 
-	if (detectionHit.GetActor() != bestTarget && detectionHit.GetActor() !=  nullptr)  // new best target
+	/*if ((detectionHit.GetActor() == nullptr || pathCreationResult == 0) && bestTarget == nullptr ) { //no target in sight
+		//if (selfPawn->GetName() == "BP_SDTAICharacter2") {
+			UE_LOG(LogTemp, Warning, TEXT("%s is looking for the nearest collectible"), *selfPawn->GetName());
+		//}
+		bestTarget = GetNearestColectible();
+	}*/
+	if (detectionHit.GetActor() != bestTarget && detectionHit.GetActor() !=  nullptr)  //new best target
 	{
+		EPathFollowingRequestResult::Type pathCreationResult = MoveToActor(detectionHit.GetActor(), -1.0f, false, true, true, 0, false);
 		//UE_LOG(LogTemp, Warning, TEXT("%s is seing something new : %s"), *selfPawn->GetName(), *detectionHit.GetActor()->GetName());
-		bestTarget = detectionHit.GetActor();
+		if (pathCreationResult == 2) //success
+		{
+			bestTarget = detectionHit.GetActor();
+		}
+
+	} 
+	else if (m_ReachedTarget) 
+	{
+		bestTarget = GetNearestColectible();
 	}
     DrawDebugCapsule(GetWorld(), detectionStartLocation + m_DetectionCapsuleHalfLength * selfPawn->GetActorForwardVector(), m_DetectionCapsuleHalfLength, m_DetectionCapsuleRadius, selfPawn->GetActorQuat() * selfPawn->GetActorUpVector().ToOrientationQuat(), FColor::Blue);
 }
@@ -152,13 +152,16 @@ AActor* ASDTAIController::GetNearestColectible() {
 	APawn* selfPawn = GetPawn();
 	TArray<AActor*> foundCollectibles;
 	UGameplayStatics::GetAllActorsOfClass(word, ASDTCollectible::StaticClass(), foundCollectibles);
-	AActor* nearestCollectible = *foundCollectibles.GetData();
+	AActor* nearestCollectible = nullptr;
+	float nearestDistance = TNumericLimits<float>::Max();
 
 	for (AActor* collectible : foundCollectibles)
 	{
-		if(nearestCollectible->GetSquaredDistanceTo(selfPawn) > collectible->GetSquaredDistanceTo(selfPawn))
+		EPathFollowingRequestResult::Type pathCreationResult = MoveToActor(collectible, -1.0f, false, true, true, 0, false);
+		if(nearestDistance > collectible->GetSquaredDistanceTo(selfPawn) && pathCreationResult == 2 )
 		{
 			nearestCollectible = collectible;
+			nearestDistance = collectible->GetSquaredDistanceTo(selfPawn);
 		}
 	}
 	return nearestCollectible;
