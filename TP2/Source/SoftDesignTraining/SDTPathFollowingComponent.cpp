@@ -21,8 +21,25 @@ void USDTPathFollowingComponent::FollowPathSegment(float DeltaTime)
 
     if (SDTUtils::HasJumpFlag(segmentStart))
     {
-        //update jump
-    }
+		UE_LOG(LogTemp, Warning, TEXT("Your message"));
+		AActor* actor = const_cast<AActor*>(Path->GetSourceActor());
+		if (actor != nullptr) {
+
+			ACharacter* character = Cast<ACharacter>(actor);
+			ASDTAIController* controller = Cast<ASDTAIController>(character->GetController());
+			if (controller->AtJumpSegment)
+			{
+				controller->AtJumpSegment = false;
+			} 
+			else
+			{
+				character->Jump();
+				controller->AtJumpSegment = true;
+			}
+			
+
+		}
+	}
     else
     {
 		Super::FollowPathSegment(DeltaTime);
@@ -39,8 +56,8 @@ void USDTPathFollowingComponent::SetMoveSegment(int32 segmentStartIndex)
 
     if (SDTUtils::HasJumpFlag(segmentStart) && FNavMeshNodeFlags(segmentStart.Flags).IsNavLink())
     {
-        //Handle starting jump
-    }
+
+	}
     else
     {
         //Handle normal segments

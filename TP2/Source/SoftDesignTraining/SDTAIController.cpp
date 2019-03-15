@@ -82,14 +82,15 @@ void ASDTAIController::UpdatePlayerInteraction(float deltaTime)
     //finish jump before updating AI state
     if (AtJumpSegment)
         return;
+	//if()
 
     APawn* selfPawn = GetPawn();
     if (!selfPawn)
         return;
 
-    ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+    /*ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
     if (!playerCharacter)
-		return;
+		return;*/
 		
     FVector detectionStartLocation = selfPawn->GetActorLocation() + selfPawn->GetActorForwardVector() * m_DetectionCapsuleForwardStartingOffset;
     FVector detectionEndLocation = detectionStartLocation + selfPawn->GetActorForwardVector() * m_DetectionCapsuleHalfLength * 2;
