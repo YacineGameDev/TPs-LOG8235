@@ -22,7 +22,7 @@ void ASDTAIController::GoToBestTarget(float deltaTime)
 	if (bestTarget != nullptr) { //shouldn't be necessary
 		OnMoveToTarget();
 		if(IsActorPlayer(bestTarget))
-			MoveToActor(bestTarget, -1.0f, false, true, true, 0, false);
+			MoveToActor(bestTarget, 1.0f, false, true, true, 0, false);
 		else if (lastPlayerPosition != FVector::ZeroVector)
 			MoveToLocation(lastPlayerPosition, -1.0f, false, true, false, true, 0, false);
 		else
@@ -39,9 +39,9 @@ void ASDTAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollow
 {
     Super::OnMoveCompleted(RequestID, Result);
 	APawn* selfPawn = GetPawn();
-	bestTarget = nullptr;
-	 if (Result.IsSuccess())
+	if (Result.IsSuccess())
 		lastPlayerPosition = FVector::ZeroVector;
+	bestTarget = nullptr;
     m_ReachedTarget = true;
 }
 
@@ -100,33 +100,40 @@ void ASDTAIController::UpdatePlayerInteraction(float deltaTime)
 
     TArray<FHitResult> allDetectionHits;
     GetWorld()->SweepMultiByObjectType(allDetectionHits, detectionStartLocation, detectionEndLocation, FQuat::Identity, detectionTraceObjectTypes, FCollisionShape::MakeSphere(m_DetectionCapsuleRadius));
-
     FHitResult detectionHit;
     GetHightestPriorityDetectionHit(allDetectionHits, detectionHit);
+	bool canSeeHit = true;
+	if (IsActorPlayer(detectionHit.GetActor()))
+		canSeeHit = !SDTUtils::Raycast(GetWorld(), selfPawn->GetPawnViewLocation(), detectionHit.GetActor()->GetActorLocation());
+	
 	DrawDebugCapsule(GetWorld(), detectionStartLocation + m_DetectionCapsuleHalfLength * selfPawn->GetActorForwardVector(), m_DetectionCapsuleHalfLength, m_DetectionCapsuleRadius, selfPawn->GetActorQuat() * selfPawn->GetActorUpVector().ToOrientationQuat(), FColor::Blue);
+
     //Set behavior based on hit
 
-	if (IsActorPlayer(detectionHit.GetActor()))
+	if (IsActorPlayer(detectionHit.GetActor()) && canSeeHit)
 	{
-		lastPlayerPosition = detectionHit.GetActor()->GetActorLocation();
-
-		if (IsActorCollectibleAndAvailable(bestTarget))
-		{
+		//if (!SDTUtils::IsPlayerPoweredUp(GetWorld())) {
+			lastPlayerPosition = detectionHit.GetActor()->GetActorLocation();
+			if (IsActorCollectible(bestTarget))
+			{
+				Cast<ASDTCollectible>(bestTarget)->isTargeted = false;
+				AIStateInterrupted();
+			}
+			if (bestTarget == nullptr) 
+			{
+				bestTarget = detectionHit.GetActor();
+			}
+		//}
+		/*else {
 			AIStateInterrupted();
-		}
-		bestTarget = detectionHit.GetActor();
+			bestTarget = GetNearestColectible();
+		}*/
 	}
-	else if (IsActorCollectibleAndAvailable(detectionHit.GetActor()))
+	else if (bestTarget == nullptr || IsActorPlayer(bestTarget))
 	{
-		if (IsActorPlayer(bestTarget)) 
-		{
-			AIStateInterrupted();
-		}
-		bestTarget = detectionHit.GetActor();
-	}
-	else if (bestTarget == nullptr)  // we don't have a best target and we don't detect anything
-	{
+		AIStateInterrupted();
 		bestTarget = GetNearestColectible();
+		//UE_LOG(LogTemp, Warning, TEXT("Test"));
 	}
 
 }
@@ -166,11 +173,14 @@ AActor* ASDTAIController::GetNearestColectible() {
 	float nearestDistance = TNumericLimits<float>::Max();
 	for (AActor* collectible : foundCollectibles)
 	{
-		if(nearestDistance > collectible->GetSquaredDistanceTo(selfPawn) && !Cast<ASDTCollectible>(collectible)->IsOnCooldown())
+		if(nearestDistance > collectible->GetDistanceTo(selfPawn) && IsActorCollectibleAndAvailable(collectible))
 		{
 			nearestCollectible = collectible;
-			nearestDistance = collectible->GetSquaredDistanceTo(selfPawn);
+			nearestDistance = collectible->GetDistanceTo(selfPawn);
 		}
+	}
+	if (nearestCollectible != nullptr) {
+		Cast<ASDTCollectible>(nearestCollectible)->isTargeted = true;
 	}
 	return nearestCollectible;
 }
@@ -181,10 +191,16 @@ bool ASDTAIController::IsActorPlayer(AActor* actor) {
 	return false;
 }
 
+bool ASDTAIController::IsActorCollectible(AActor* actor) {
+	if (actor != nullptr) 
+		return actor->GetName().Contains("Collectible");
+	return false;
+}
+
 bool ASDTAIController::IsActorCollectibleAndAvailable(AActor* actor) {
 	if (actor != nullptr) {
 		if (actor->GetName().Contains("Collectible"))
-			return !Cast<ASDTCollectible>(actor)->IsOnCooldown();
+			return !Cast<ASDTCollectible>(actor)->IsOnCooldown() && !Cast<ASDTCollectible>(actor)->isTargeted;
 	}
 	return false;
 }

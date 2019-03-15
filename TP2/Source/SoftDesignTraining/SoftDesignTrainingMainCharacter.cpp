@@ -2,6 +2,7 @@
 
 #include "SoftDesignTraining.h"
 #include "SoftDesignTrainingMainCharacter.h"
+#include "SDTAIController.h"
 
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -27,9 +28,9 @@ ASoftDesignTrainingMainCharacter::ASoftDesignTrainingMainCharacter()
 void ASoftDesignTrainingMainCharacter::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
     Super::OnBeginOverlap(OverlappedComponent, OtherActor, OtherComponent, OtherBodyIndex, bFromSweep, SweepResult);
-
     if (ASoftDesignTrainingCharacter* character = Cast<ASoftDesignTrainingCharacter>(OtherActor))
     {
+		Cast<ASDTAIController>(Cast<ASoftDesignTrainingCharacter>(OtherActor)->GetController())->AIStateInterrupted();
         if (!IsPoweredUp())
             SetActorLocation(m_StartingPosition);
     }

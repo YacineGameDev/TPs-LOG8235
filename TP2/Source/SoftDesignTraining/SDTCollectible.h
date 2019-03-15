@@ -20,6 +20,8 @@ public:
     void OnCooldownDone();
     bool IsOnCooldown();
 
+	bool isTargeted = false;
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
     float m_CollectCooldownDuration = 10.f;
 

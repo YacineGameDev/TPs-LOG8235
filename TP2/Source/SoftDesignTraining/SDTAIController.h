@@ -51,6 +51,7 @@ public:
     virtual void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result) override;
     void AIStateInterrupted();
 	AActor* GetNearestColectible();
+	bool IsActorCollectible(AActor* actor);
 	bool IsActorCollectibleAndAvailable(AActor* actor);
 	bool IsActorPlayer(AActor* actor);
 
