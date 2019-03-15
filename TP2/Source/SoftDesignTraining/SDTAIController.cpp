@@ -19,22 +19,14 @@ ASDTAIController::ASDTAIController(const FObjectInitializer& ObjectInitializer)
 void ASDTAIController::GoToBestTarget(float deltaTime)
 {
 	USDTPathFollowingComponent* pathFollowingComponent = (USDTPathFollowingComponent*)GetPathFollowingComponent();
-	//path = pathFollowingComponent->GetPath();
 	if (bestTarget != nullptr) { //shouldn't be necessary
-		//UE_LOG(LogTemp, Warning, TEXT("%s is moving to %s"), *GetPawn()->GetName(), *bestTarget->GetName());
 		OnMoveToTarget();
-		EPathFollowingRequestResult::Type result = MoveToLocation(bestTarget->GetActorLocation(), -1.0f, false, true, false, true, 0, false);
-		if (result == 0) //AlreadyAtGoal
-		{
-			//UE_LOG(LogTemp, Warning, TEXT("Failed"));
-		}
-		else if (result == 1) {
-			//UE_LOG(LogTemp, Warning, TEXT("AlreadyAtGoal"));
-
-		}
-		else if (result == 2) {
-			//UE_LOG(LogTemp, Warning, TEXT("Success"));
-		}
+		if(IsActorPlayer(bestTarget))
+			MoveToActor(bestTarget, -1.0f, false, true, true, 0, false);
+		else if (lastPlayerPosition != FVector::ZeroVector)
+			MoveToLocation(lastPlayerPosition, -1.0f, false, true, false, true, 0, false);
+		else
+			MoveToLocation(bestTarget->GetActorLocation(), -1.0f, false, true, false, true, 0, false);
 	}
 }
 
@@ -47,8 +39,9 @@ void ASDTAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollow
 {
     Super::OnMoveCompleted(RequestID, Result);
 	APawn* selfPawn = GetPawn();
-	UE_LOG(LogTemp, Warning, TEXT("%s has finish his move"), *selfPawn->GetName());
 	bestTarget = nullptr;
+	 if (Result.IsSuccess())
+		lastPlayerPosition = FVector::ZeroVector;
     m_ReachedTarget = true;
 }
 
@@ -95,9 +88,9 @@ void ASDTAIController::UpdatePlayerInteraction(float deltaTime)
         return;
 
     ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-    //if (!playerCharacter)
-     //   return;
-
+    if (!playerCharacter)
+		return;
+		
     FVector detectionStartLocation = selfPawn->GetActorLocation() + selfPawn->GetActorForwardVector() * m_DetectionCapsuleForwardStartingOffset;
     FVector detectionEndLocation = detectionStartLocation + selfPawn->GetActorForwardVector() * m_DetectionCapsuleHalfLength * 2;
 
@@ -113,22 +106,29 @@ void ASDTAIController::UpdatePlayerInteraction(float deltaTime)
 	DrawDebugCapsule(GetWorld(), detectionStartLocation + m_DetectionCapsuleHalfLength * selfPawn->GetActorForwardVector(), m_DetectionCapsuleHalfLength, m_DetectionCapsuleRadius, selfPawn->GetActorQuat() * selfPawn->GetActorUpVector().ToOrientationQuat(), FColor::Blue);
     //Set behavior based on hit
 
-	if ((IsPlayer(detectionHit) || IsCollectibleAndAvailable(detectionHit)) && (bestTarget != playerCharacter || IsPlayer(detectionHit))) //make it pretty plz
+	if (IsActorPlayer(detectionHit.GetActor()))
 	{
-		if (bestTarget != detectionHit.GetActor() && !IsPlayer(detectionHit)) {
+		lastPlayerPosition = detectionHit.GetActor()->GetActorLocation();
+
+		if (IsActorCollectibleAndAvailable(bestTarget))
+		{
 			AIStateInterrupted();
 		}
 		bestTarget = detectionHit.GetActor();
-		if (IsPlayer(detectionHit)) {
-			GoToBestTarget(deltaTime);
-		}
-		//UE_LOG(LogTemp, Warning, TEXT("%s is the best target"), *bestTarget->GetName());
 	}
-	else if (bestTarget == nullptr)
+	else if (IsActorCollectibleAndAvailable(detectionHit.GetActor()))
+	{
+		if (IsActorPlayer(bestTarget)) 
+		{
+			AIStateInterrupted();
+		}
+		bestTarget = detectionHit.GetActor();
+	}
+	else if (bestTarget == nullptr)  // we don't have a best target and we don't detect anything
 	{
 		bestTarget = GetNearestColectible();
-		//UE_LOG(LogTemp, Warning, TEXT("%s is the best target"), *bestTarget->GetName());
 	}
+
 }
 
 void ASDTAIController::GetHightestPriorityDetectionHit(const TArray<FHitResult>& hits, FHitResult& outDetectionHit)
@@ -175,16 +175,16 @@ AActor* ASDTAIController::GetNearestColectible() {
 	return nearestCollectible;
 }
 
-bool ASDTAIController::IsCollectibleAndAvailable(FHitResult hit) {
-	if (hit.GetActor() != nullptr) {
-		if (hit.GetComponent()->GetCollisionObjectType() == COLLISION_COLLECTIBLE)
-			return !Cast<ASDTCollectible>(hit.GetActor())->IsOnCooldown();
-	}
+bool ASDTAIController::IsActorPlayer(AActor* actor) {
+	if (actor != nullptr)
+		return (actor->GetName().Contains("Main"));
 	return false;
 }
 
-bool ASDTAIController::IsPlayer(FHitResult hit) {
-	if (hit.GetActor() != nullptr)
-		return hit.GetComponent()->GetCollisionObjectType() == COLLISION_PLAYER;
+bool ASDTAIController::IsActorCollectibleAndAvailable(AActor* actor) {
+	if (actor != nullptr) {
+		if (actor->GetName().Contains("Collectible"))
+			return !Cast<ASDTCollectible>(actor)->IsOnCooldown();
+	}
 	return false;
 }

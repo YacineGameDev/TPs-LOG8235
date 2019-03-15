@@ -14,7 +14,7 @@ ASDTBaseAIController::ASDTBaseAIController(const FObjectInitializer& ObjectIniti
 
 void ASDTBaseAIController::Tick(float deltaTime)
 {
-	if (GetPawn()->GetName() == "BP_SDTAICharacter2") {
+	//if (GetPawn()->GetName() == "BP_SDTAICharacter2") {
 		Super::Tick(deltaTime);
 
 		ChooseBehavior(deltaTime);
@@ -27,7 +27,7 @@ void ASDTBaseAIController::Tick(float deltaTime)
 		{
 			ShowNavigationPath();
 		}
-	}
+	//}
 }
 
 

@@ -18,7 +18,7 @@ public:
     ASDTAIController(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	AActor* bestTarget;
-	//FNavPathSharedPtr path;
+	FVector lastPlayerPosition;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
     float m_DetectionCapsuleHalfLength = 500.f;
@@ -51,8 +51,9 @@ public:
     virtual void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result) override;
     void AIStateInterrupted();
 	AActor* GetNearestColectible();
-	bool IsCollectibleAndAvailable(FHitResult hit);
-	bool IsPlayer(FHitResult hit);
+	bool IsActorCollectibleAndAvailable(AActor* actor);
+	bool IsActorPlayer(AActor* actor);
+
 
 protected:
     void OnMoveToTarget();
