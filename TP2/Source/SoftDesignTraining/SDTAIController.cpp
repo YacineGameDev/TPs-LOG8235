@@ -18,8 +18,23 @@ ASDTAIController::ASDTAIController(const FObjectInitializer& ObjectInitializer)
 
 void ASDTAIController::GoToBestTarget(float deltaTime)
 {
-	if (bestTarget != nullptr) {
+	USDTPathFollowingComponent* pathFollowingComponent = (USDTPathFollowingComponent*)GetPathFollowingComponent();
+	//path = pathFollowingComponent->GetPath();
+	if (bestTarget != nullptr) { //shouldn't be necessary
+		UE_LOG(LogTemp, Warning, TEXT("%s is moving to %s"), *GetPawn()->GetName(), *bestTarget->GetName());
 		OnMoveToTarget();
+		EPathFollowingRequestResult::Type result = MoveToLocation(bestTarget->GetActorLocation(), -1.0f, false, true, false, true, 0, false);
+		if (result == 0) //AlreadyAtGoal
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Failed"));
+		}
+		else if (result == 1) {
+			UE_LOG(LogTemp, Warning, TEXT("AlreadyAtGoal"));
+
+		}
+		else if (result == 2) {
+			UE_LOG(LogTemp, Warning, TEXT("Success"));
+		}
 	}
 }
 
@@ -95,30 +110,22 @@ void ASDTAIController::UpdatePlayerInteraction(float deltaTime)
 
     FHitResult detectionHit;
     GetHightestPriorityDetectionHit(allDetectionHits, detectionHit);
-
+	DrawDebugCapsule(GetWorld(), detectionStartLocation + m_DetectionCapsuleHalfLength * selfPawn->GetActorForwardVector(), m_DetectionCapsuleHalfLength, m_DetectionCapsuleRadius, selfPawn->GetActorQuat() * selfPawn->GetActorUpVector().ToOrientationQuat(), FColor::Blue);
     //Set behavior based on hit
+	/*if (bestTarget != nullptr)
+	UE_LOG(LogTemp, Warning, TEXT("%s is the best target"), *bestTarget->GetName());*/
 
-	/*if ((detectionHit.GetActor() == nullptr || pathCreationResult == 0) && bestTarget == nullptr ) { //no target in sight
-		//if (selfPawn->GetName() == "BP_SDTAICharacter2") {
-			UE_LOG(LogTemp, Warning, TEXT("%s is looking for the nearest collectible"), *selfPawn->GetName());
-		//}
-		bestTarget = GetNearestColectible();
-	}*/
-	if (detectionHit.GetActor() != bestTarget && detectionHit.GetActor() !=  nullptr)  //new best target
+	if (detectionHit.GetActor() != nullptr) 
 	{
-		EPathFollowingRequestResult::Type pathCreationResult = MoveToActor(detectionHit.GetActor(), -1.0f, false, true, true, 0, false);
-		//UE_LOG(LogTemp, Warning, TEXT("%s is seing something new : %s"), *selfPawn->GetName(), *detectionHit.GetActor()->GetName());
-		if (pathCreationResult == 2) //success
+		if (IsPlayer(detectionHit) || IsCollectibleAndAvailable(detectionHit))
 		{
 			bestTarget = detectionHit.GetActor();
 		}
-
-	} 
-	else if (m_ReachedTarget) 
+	}
+	else if (bestTarget == nullptr)
 	{
 		bestTarget = GetNearestColectible();
 	}
-    DrawDebugCapsule(GetWorld(), detectionStartLocation + m_DetectionCapsuleHalfLength * selfPawn->GetActorForwardVector(), m_DetectionCapsuleHalfLength, m_DetectionCapsuleRadius, selfPawn->GetActorQuat() * selfPawn->GetActorUpVector().ToOrientationQuat(), FColor::Blue);
 }
 
 void ASDTAIController::GetHightestPriorityDetectionHit(const TArray<FHitResult>& hits, FHitResult& outDetectionHit)
@@ -154,15 +161,23 @@ AActor* ASDTAIController::GetNearestColectible() {
 	UGameplayStatics::GetAllActorsOfClass(word, ASDTCollectible::StaticClass(), foundCollectibles);
 	AActor* nearestCollectible = nullptr;
 	float nearestDistance = TNumericLimits<float>::Max();
-
 	for (AActor* collectible : foundCollectibles)
 	{
-		EPathFollowingRequestResult::Type pathCreationResult = MoveToActor(collectible, -1.0f, false, true, true, 0, false);
-		if(nearestDistance > collectible->GetSquaredDistanceTo(selfPawn) && pathCreationResult == 2 )
+		if(nearestDistance > collectible->GetSquaredDistanceTo(selfPawn) && !Cast<ASDTCollectible>(collectible)->IsOnCooldown())
 		{
 			nearestCollectible = collectible;
 			nearestDistance = collectible->GetSquaredDistanceTo(selfPawn);
 		}
 	}
 	return nearestCollectible;
+}
+
+bool ASDTAIController::IsCollectibleAndAvailable(FHitResult hit) {
+	if (hit.GetComponent()->GetCollisionObjectType() == COLLISION_COLLECTIBLE)
+		return !Cast<ASDTCollectible>(hit.GetActor())->IsOnCooldown();
+	return false;
+}
+
+bool ASDTAIController::IsPlayer(FHitResult hit) {
+	return hit.GetComponent()->GetCollisionObjectType() == COLLISION_PLAYER;
 }
