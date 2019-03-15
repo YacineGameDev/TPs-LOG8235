@@ -21,19 +21,19 @@ void ASDTAIController::GoToBestTarget(float deltaTime)
 	USDTPathFollowingComponent* pathFollowingComponent = (USDTPathFollowingComponent*)GetPathFollowingComponent();
 	//path = pathFollowingComponent->GetPath();
 	if (bestTarget != nullptr) { //shouldn't be necessary
-		UE_LOG(LogTemp, Warning, TEXT("%s is moving to %s"), *GetPawn()->GetName(), *bestTarget->GetName());
+		//UE_LOG(LogTemp, Warning, TEXT("%s is moving to %s"), *GetPawn()->GetName(), *bestTarget->GetName());
 		OnMoveToTarget();
 		EPathFollowingRequestResult::Type result = MoveToLocation(bestTarget->GetActorLocation(), -1.0f, false, true, false, true, 0, false);
 		if (result == 0) //AlreadyAtGoal
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Failed"));
+			//UE_LOG(LogTemp, Warning, TEXT("Failed"));
 		}
 		else if (result == 1) {
-			UE_LOG(LogTemp, Warning, TEXT("AlreadyAtGoal"));
+			//UE_LOG(LogTemp, Warning, TEXT("AlreadyAtGoal"));
 
 		}
 		else if (result == 2) {
-			UE_LOG(LogTemp, Warning, TEXT("Success"));
+			//UE_LOG(LogTemp, Warning, TEXT("Success"));
 		}
 	}
 }
@@ -95,8 +95,8 @@ void ASDTAIController::UpdatePlayerInteraction(float deltaTime)
         return;
 
     ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-    if (!playerCharacter)
-        return;
+    //if (!playerCharacter)
+     //   return;
 
     FVector detectionStartLocation = selfPawn->GetActorLocation() + selfPawn->GetActorForwardVector() * m_DetectionCapsuleForwardStartingOffset;
     FVector detectionEndLocation = detectionStartLocation + selfPawn->GetActorForwardVector() * m_DetectionCapsuleHalfLength * 2;
@@ -112,19 +112,22 @@ void ASDTAIController::UpdatePlayerInteraction(float deltaTime)
     GetHightestPriorityDetectionHit(allDetectionHits, detectionHit);
 	DrawDebugCapsule(GetWorld(), detectionStartLocation + m_DetectionCapsuleHalfLength * selfPawn->GetActorForwardVector(), m_DetectionCapsuleHalfLength, m_DetectionCapsuleRadius, selfPawn->GetActorQuat() * selfPawn->GetActorUpVector().ToOrientationQuat(), FColor::Blue);
     //Set behavior based on hit
-	/*if (bestTarget != nullptr)
-	UE_LOG(LogTemp, Warning, TEXT("%s is the best target"), *bestTarget->GetName());*/
 
-	if (detectionHit.GetActor() != nullptr) 
+	if ((IsPlayer(detectionHit) || IsCollectibleAndAvailable(detectionHit)) && (bestTarget != playerCharacter || IsPlayer(detectionHit))) //make it pretty plz
 	{
-		if (IsPlayer(detectionHit) || IsCollectibleAndAvailable(detectionHit))
-		{
-			bestTarget = detectionHit.GetActor();
+		if (bestTarget != detectionHit.GetActor() && !IsPlayer(detectionHit)) {
+			AIStateInterrupted();
 		}
+		bestTarget = detectionHit.GetActor();
+		if (IsPlayer(detectionHit)) {
+			GoToBestTarget(deltaTime);
+		}
+		//UE_LOG(LogTemp, Warning, TEXT("%s is the best target"), *bestTarget->GetName());
 	}
 	else if (bestTarget == nullptr)
 	{
 		bestTarget = GetNearestColectible();
+		//UE_LOG(LogTemp, Warning, TEXT("%s is the best target"), *bestTarget->GetName());
 	}
 }
 
@@ -173,11 +176,15 @@ AActor* ASDTAIController::GetNearestColectible() {
 }
 
 bool ASDTAIController::IsCollectibleAndAvailable(FHitResult hit) {
-	if (hit.GetComponent()->GetCollisionObjectType() == COLLISION_COLLECTIBLE)
-		return !Cast<ASDTCollectible>(hit.GetActor())->IsOnCooldown();
+	if (hit.GetActor() != nullptr) {
+		if (hit.GetComponent()->GetCollisionObjectType() == COLLISION_COLLECTIBLE)
+			return !Cast<ASDTCollectible>(hit.GetActor())->IsOnCooldown();
+	}
 	return false;
 }
 
 bool ASDTAIController::IsPlayer(FHitResult hit) {
-	return hit.GetComponent()->GetCollisionObjectType() == COLLISION_PLAYER;
+	if (hit.GetActor() != nullptr)
+		return hit.GetComponent()->GetCollisionObjectType() == COLLISION_PLAYER;
+	return false;
 }
