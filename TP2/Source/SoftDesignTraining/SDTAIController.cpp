@@ -81,18 +81,16 @@ void ASDTAIController::UpdatePlayerInteraction(float deltaTime)
 {
     //finish jump before updating AI state
 
-	// UE_LOG(LogTemp, Warning, TEXT("MyCharacter's Bool is %s"), (AtJumpSegment ? TEXT("True") : TEXT("False")));
-
-    if (AtJumpSegment)
-        return;
+	if (AtJumpSegment)
+		return;
 
     APawn* selfPawn = GetPawn();
     if (!selfPawn)
         return;
 
-    /*ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+    ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
     if (!playerCharacter)
-		return;*/
+		return;
 		
     FVector detectionStartLocation = selfPawn->GetActorLocation() + selfPawn->GetActorForwardVector() * m_DetectionCapsuleForwardStartingOffset;
     FVector detectionEndLocation = detectionStartLocation + selfPawn->GetActorForwardVector() * m_DetectionCapsuleHalfLength * 2;
@@ -115,7 +113,8 @@ void ASDTAIController::UpdatePlayerInteraction(float deltaTime)
 
 	if (IsActorPlayer(detectionHit.GetActor()) && canSeeHit)
 	{
-		if (!SDTUtils::IsPlayerPoweredUp(GetWorld())) {
+		if (!SDTUtils::IsPlayerPoweredUp(GetWorld())) 
+		{
 			lastPlayerPosition = detectionHit.GetActor()->GetActorLocation();
 			if (IsActorCollectible(bestTarget))
 			{
@@ -127,9 +126,12 @@ void ASDTAIController::UpdatePlayerInteraction(float deltaTime)
 				bestTarget = detectionHit.GetActor();
 			}
 		}
-		else {
-			if (IsActorPlayer(bestTarget))
+		else 
+		{
+			if (IsActorPlayer(bestTarget) || IsActorCollectible(bestTarget)) 
 				AIStateInterrupted();
+			if(IsActorCollectible(bestTarget))
+				Cast<ASDTCollectible>(bestTarget)->isTargeted = false;
 			bestTarget = GetFurthestFleeLocation();
 		}
 	}
