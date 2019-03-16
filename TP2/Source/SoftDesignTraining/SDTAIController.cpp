@@ -80,9 +80,11 @@ void ASDTAIController::ChooseBehavior(float deltaTime)
 void ASDTAIController::UpdatePlayerInteraction(float deltaTime)
 {
     //finish jump before updating AI state
+
+	// UE_LOG(LogTemp, Warning, TEXT("MyCharacter's Bool is %s"), (AtJumpSegment ? TEXT("True") : TEXT("False")));
+
     if (AtJumpSegment)
         return;
-	//if()
 
     APawn* selfPawn = GetPawn();
     if (!selfPawn)
@@ -113,7 +115,7 @@ void ASDTAIController::UpdatePlayerInteraction(float deltaTime)
 
 	if (IsActorPlayer(detectionHit.GetActor()) && canSeeHit)
 	{
-		//if (!SDTUtils::IsPlayerPoweredUp(GetWorld())) {
+		if (!SDTUtils::IsPlayerPoweredUp(GetWorld())) {
 			lastPlayerPosition = detectionHit.GetActor()->GetActorLocation();
 			if (IsActorCollectible(bestTarget))
 			{
@@ -124,11 +126,12 @@ void ASDTAIController::UpdatePlayerInteraction(float deltaTime)
 			{
 				bestTarget = detectionHit.GetActor();
 			}
-		//}
-		/*else {
-			AIStateInterrupted();
-			bestTarget = GetNearestColectible();
-		}*/
+		}
+		else {
+			if (IsActorPlayer(bestTarget))
+				AIStateInterrupted();
+			bestTarget = GetFurthestFleeLocation();
+		}
 	}
 	else if (bestTarget == nullptr || IsActorPlayer(bestTarget))
 	{
@@ -185,6 +188,29 @@ AActor* ASDTAIController::GetNearestColectible() {
 	}
 	return nearestCollectible;
 }
+
+AActor* ASDTAIController::GetFurthestFleeLocation() {
+
+	UWorld* word = GetWorld();
+	APawn* selfPawn = GetPawn();
+	TArray<AActor*> foundFleeLocations;
+	UGameplayStatics::GetAllActorsOfClass(word, ASDTFleeLocation::StaticClass(), foundFleeLocations);
+	AActor* furthestFleeLocation = nullptr;
+	float furthestDistance = 0;
+
+
+	for (AActor* fleePos : foundFleeLocations)
+	{
+		if (fleePos->GetDistanceTo(selfPawn) > furthestDistance)
+		{
+			furthestFleeLocation = fleePos;
+			furthestDistance = fleePos->GetDistanceTo(selfPawn);
+		}
+	}
+
+	return furthestFleeLocation;
+}
+
 
 bool ASDTAIController::IsActorPlayer(AActor* actor) {
 	if (actor != nullptr)
