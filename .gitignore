@@ -74,9 +74,7 @@ Build/*/**
 Plugins/*/Intermediate/*
 */Content/Collections
 */Content/Developers
-*/Content/Maps
 */Content/StarterContent
-*/Content/TopDown
 */Content/Mannequin
 */Config/*
 
