@@ -22,11 +22,12 @@ void ASDTAIController::GoToBestTarget(float deltaTime)
 	if (bestTarget != nullptr) { //shouldn't be necessary
 		OnMoveToTarget();
 		if(IsActorPlayer(bestTarget))
-			MoveToActor(bestTarget, 1.0f, false, true, true, 0, false);
+			MoveToActor(bestTarget, 0.5f, false, true, true, 0, false);
 		else if (lastPlayerPosition != FVector::ZeroVector)
 			MoveToLocation(lastPlayerPosition, -1.0f, false, true, false, true, 0, false);
-		else
+		else {
 			MoveToLocation(bestTarget->GetActorLocation(), -1.0f, false, true, false, true, 0, false);
+		}
 	}
 }
 
@@ -108,7 +109,7 @@ void ASDTAIController::UpdatePlayerInteraction(float deltaTime)
 		canSeeHit = !SDTUtils::Raycast(GetWorld(), selfPawn->GetPawnViewLocation(), detectionHit.GetActor()->GetActorLocation());
 	
 	DrawDebugCapsule(GetWorld(), detectionStartLocation + m_DetectionCapsuleHalfLength * selfPawn->GetActorForwardVector(), m_DetectionCapsuleHalfLength, m_DetectionCapsuleRadius, selfPawn->GetActorQuat() * selfPawn->GetActorUpVector().ToOrientationQuat(), FColor::Blue);
-
+	ResetIfTooMuchCollectibleTargeted();
     //Set behavior based on hit
 
 	if (IsActorPlayer(detectionHit.GetActor()) && canSeeHit)
@@ -120,6 +121,7 @@ void ASDTAIController::UpdatePlayerInteraction(float deltaTime)
 			{
 				Cast<ASDTCollectible>(bestTarget)->isTargeted = false;
 				AIStateInterrupted();
+				bestTarget = detectionHit.GetActor();
 			}
 			if (bestTarget == nullptr) 
 			{
@@ -135,11 +137,10 @@ void ASDTAIController::UpdatePlayerInteraction(float deltaTime)
 			bestTarget = GetFurthestFleeLocation();
 		}
 	}
-	else if (bestTarget == nullptr || IsActorPlayer(bestTarget))
+	else if ((bestTarget == nullptr || IsActorPlayer(bestTarget)))
 	{
 		AIStateInterrupted();
 		bestTarget = GetNearestColectible();
-		//UE_LOG(LogTemp, Warning, TEXT("Test"));
 	}
 
 }
@@ -170,6 +171,25 @@ void ASDTAIController::AIStateInterrupted()
     m_ReachedTarget = true;
 }
 
+void ASDTAIController::ResetIfTooMuchCollectibleTargeted() // to deal with a last minute bug
+{
+	TArray<AActor*> foundCollectibles;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASDTCollectible::StaticClass(), foundCollectibles);
+	int numberOfTargetedCollectible = 0;
+	for (AActor* collectible : foundCollectibles)
+	{
+		if (Cast<ASDTCollectible>(collectible)->isTargeted == true)
+			numberOfTargetedCollectible++;
+	}
+	if (numberOfTargetedCollectible > 3) {
+		UE_LOG(LogTemp, Warning, TEXT("Your message"));
+		for (AActor* collectible : foundCollectibles)
+		{
+			Cast<ASDTCollectible>(collectible)->isTargeted = false;
+		}
+	}
+}
+
 AActor* ASDTAIController::GetNearestColectible() {
 	UWorld* word = GetWorld();
 	APawn* selfPawn = GetPawn();
@@ -185,9 +205,8 @@ AActor* ASDTAIController::GetNearestColectible() {
 			nearestDistance = collectible->GetDistanceTo(selfPawn);
 		}
 	}
-	if (nearestCollectible != nullptr) {
+	if (nearestCollectible != nullptr)
 		Cast<ASDTCollectible>(nearestCollectible)->isTargeted = true;
-	}
 	return nearestCollectible;
 }
 
@@ -195,15 +214,18 @@ AActor* ASDTAIController::GetFurthestFleeLocation() {
 
 	UWorld* word = GetWorld();
 	APawn* selfPawn = GetPawn();
+	ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+	FVector directionOfPlayer = (playerCharacter->GetActorLocation() - selfPawn->GetActorLocation()).GetSafeNormal();
 	TArray<AActor*> foundFleeLocations;
 	UGameplayStatics::GetAllActorsOfClass(word, ASDTFleeLocation::StaticClass(), foundFleeLocations);
 	AActor* furthestFleeLocation = nullptr;
 	float furthestDistance = 0;
 
-
 	for (AActor* fleePos : foundFleeLocations)
 	{
-		if (fleePos->GetDistanceTo(selfPawn) > furthestDistance)
+		FVector directionOfFleePos = (fleePos->GetActorLocation() - selfPawn->GetActorLocation()).GetSafeNormal();
+		float dotResult = FVector::DotProduct(directionOfPlayer, directionOfFleePos); //if < 0, not the same direction
+		if (fleePos->GetDistanceTo(selfPawn) > furthestDistance && dotResult < 0 )
 		{
 			furthestFleeLocation = fleePos;
 			furthestDistance = fleePos->GetDistanceTo(selfPawn);
@@ -232,4 +254,4 @@ bool ASDTAIController::IsActorCollectibleAndAvailable(AActor* actor) {
 			return !Cast<ASDTCollectible>(actor)->IsOnCooldown() && !Cast<ASDTCollectible>(actor)->isTargeted;
 	}
 	return false;
-}
+} 

@@ -3,6 +3,7 @@
 #include "SoftDesignTraining.h"
 #include "SoftDesignTrainingMainCharacter.h"
 #include "SDTAIController.h"
+#include "SDTCollectible.h"
 
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"

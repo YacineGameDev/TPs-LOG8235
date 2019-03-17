@@ -12,6 +12,8 @@ class ASoftDesignTrainingCharacter : public ACharacter
 public:
     ASoftDesignTrainingCharacter();
 
+	AActor* lastActorOverlap;
+
     virtual void BeginPlay() override;
     virtual void OnCollectPowerUp() {};
     void Die();

@@ -21,6 +21,7 @@ void ASDTCollectible::OnCooldownDone()
     GetWorld()->GetTimerManager().ClearTimer(m_CollectCooldownTimer);
 
     GetStaticMeshComponent()->SetVisibility(true);
+	isTargeted = false;
 }
 
 bool ASDTCollectible::IsOnCooldown()

@@ -54,6 +54,7 @@ public:
 public:
     virtual void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result) override;
     void AIStateInterrupted();
+	void ResetIfTooMuchCollectibleTargeted();
 	AActor* GetNearestColectible();
 	AActor* GetFurthestFleeLocation();
 	bool IsActorCollectible(AActor* actor);
