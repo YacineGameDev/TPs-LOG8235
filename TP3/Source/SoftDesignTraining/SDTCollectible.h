@@ -18,6 +18,7 @@ public:
 
     void Collect();
     void OnCooldownDone();
+	UFUNCTION(BlueprintCallable, Category = "IsOnCooldown")
     bool IsOnCooldown();
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
