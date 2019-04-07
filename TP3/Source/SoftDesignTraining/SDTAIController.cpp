@@ -11,15 +11,26 @@
 #include "SDTUtils.h"
 #include "SoftDesignTrainingCharacter.h"
 #include "EngineUtils.h"
+#include "BehaviorTree/Blackboard/BlackboardKeyType_Object.h"
+#include "BehaviorTree/Blackboard/BlackboardKeyType_Bool.h"
+#include "BehaviorTree/Blackboard/BlackboardKeyType_Vector.h"
+
 
 ASDTAIController::ASDTAIController(const FObjectInitializer& ObjectInitializer)
     : m_isPlayerDetected(false)
 	,m_isPlayerPoweredUp(false)
+	,m_isTargetSeenBBKeyID(0)
+	,m_isTargetPoweredUpBBKeyID(0)
+	,m_fleePosBBKeyID(0)
+	,m_targetPosBBKeyID(0)
 	,Super(ObjectInitializer.SetDefaultSubobjectClass<USDTPathFollowingComponent>(TEXT("PathFollowingComponent")))
 {
     m_PlayerInteractionBehavior = PlayerInteractionBehavior_Collect;
 	m_behaviorTreeComponent = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("BehaviorTreeComponent"));
 	m_blackboardComponent = CreateDefaultSubobject<UBlackboardComponent>(TEXT("BlackboardComponent"));
+	m_targetPlayerPos = FVector::ZeroVector;
+	m_fleePos = FVector::ZeroVector;
+	m_collectiblePos = FVector::ZeroVector;
 }
 
 void ASDTAIController::StartBehaviorTree(APawn* pawn) {
@@ -388,7 +399,173 @@ void ASDTAIController::UpdatePlayerInteractionBehavior(const FHitResult& detecti
     }
 }
 
+
+/***********------- NEW CODE -------***********/
+
+
 void ASDTAIController::DetectPlayer()
 {
+	//finish jump before updating AI state
+	if (AtJumpSegment)
+		return;
 
+	APawn* selfPawn = GetPawn();
+	if (!selfPawn)
+		return;
+
+	m_isPlayerDetected = false;
+	AActor* targetPlayer = NULL;
+
+	FVector detectionStartLocation = selfPawn->GetActorLocation() + selfPawn->GetActorForwardVector() * m_DetectionCapsuleForwardStartingOffset;
+	FVector detectionEndLocation = detectionStartLocation + selfPawn->GetActorForwardVector() * m_DetectionCapsuleHalfLength * 2;
+
+	TArray<TEnumAsByte<EObjectTypeQuery>> detectionTraceObjectTypes;
+	detectionTraceObjectTypes.Add(UEngineTypes::ConvertToObjectType(COLLISION_PLAYER));
+
+	TArray<FHitResult> allDetectionHits;
+	GetWorld()->SweepMultiByObjectType(allDetectionHits, detectionStartLocation, detectionEndLocation, FQuat::Identity, detectionTraceObjectTypes, FCollisionShape::MakeSphere(m_DetectionCapsuleRadius));
+
+	FHitResult detectionHit;
+	GetHightestPriorityDetectionHit(allDetectionHits, detectionHit);
+
+	// MAYBE TO REMOVE
+	bool wasPlayerDetected = m_isPlayerDetected;
+
+	if (detectionHit.GetComponent())
+	{
+		m_isPlayerDetected = detectionHit.GetComponent()->GetCollisionObjectType() == COLLISION_PLAYER;
+
+		if (wasPlayerDetected != m_isPlayerDetected) {
+			if(!AtJumpSegment)
+				AIStateInterrupted();
+		}
+
+		if (m_isPlayerDetected) {
+			ACharacter * playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+			if (!playerCharacter)
+				return;
+			m_isPlayerPoweredUp = SDTUtils::IsPlayerPoweredUp(GetWorld());
+			if (m_isPlayerPoweredUp) {
+				FVector fleeLocation = GetBestFleeLocation();
+				if (fleeLocation != FVector::ZeroVector)
+					m_fleePos = fleeLocation;
+			}
+			else {
+				m_targetPlayerPos = playerCharacter->GetActorLocation();
+			}
+		}
+		else {
+			FVector collectibleLocation = GetRandomCollectibleLocation();
+			if (collectibleLocation != FVector::ZeroVector)
+				m_collectiblePos = collectibleLocation;
+		}
+	}
+	else {
+		FVector collectibleLocation = GetRandomCollectibleLocation();
+		if (collectibleLocation != FVector::ZeroVector)
+			m_collectiblePos = collectibleLocation;
+	}
+		
+}
+
+void ASDTAIController::Possess(APawn* pawn)
+{
+
+	Super::Possess(pawn);
+
+	if (ASoftDesignTrainingCharacter* character = Cast<ASoftDesignTrainingCharacter>(pawn))
+	{
+		if (character->GetBehaviorTree())
+		{
+			m_blackboardComponent->InitializeBlackboard(*character->GetBehaviorTree()->BlackboardAsset);
+
+			m_targetPosBBKeyID = m_blackboardComponent->GetKeyID("TargetPos");
+			m_isTargetSeenBBKeyID = m_blackboardComponent->GetKeyID("TargetIsSeen");
+			m_isTargetPoweredUpBBKeyID = m_blackboardComponent->GetKeyID("IsPlayerPoweredUp");
+			m_fleePosBBKeyID = m_blackboardComponent->GetKeyID("FleePos");
+			m_collectiblePosBBKeyID = m_blackboardComponent->GetKeyID("CollectiblePos");
+
+			//Set this agent in the BT
+			m_blackboardComponent->SetValue<UBlackboardKeyType_Object>(m_blackboardComponent->GetKeyID("SelfActor"), pawn);
+			m_blackboardComponent->SetValue<UBlackboardKeyType_Vector>(m_blackboardComponent->GetKeyID("TargetPos"), FVector::ZeroVector);
+			m_blackboardComponent->SetValue<UBlackboardKeyType_Vector>(m_blackboardComponent->GetKeyID("FleePos"), FVector::ZeroVector);
+			m_blackboardComponent->SetValue<UBlackboardKeyType_Vector>(m_blackboardComponent->GetKeyID("CollectiblePos"), FVector::ZeroVector);
+			m_blackboardComponent->SetValue<UBlackboardKeyType_Bool>(m_blackboardComponent->GetKeyID("IsPlayerPoweredUp"), false);
+			m_blackboardComponent->SetValue<UBlackboardKeyType_Bool>(m_blackboardComponent->GetKeyID("TargetIsSeen"), false);
+
+
+		}
+	}
+}
+
+FVector ASDTAIController::GetBestFleeLocation() {
+	float bestLocationScore = 0.f;
+	ASDTFleeLocation* bestFleeLocation = nullptr;
+
+	ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+	/*if (!playerCharacter)
+		return;*/
+
+	for (TActorIterator<ASDTFleeLocation> actorIterator(GetWorld(), ASDTFleeLocation::StaticClass()); actorIterator; ++actorIterator)
+	{
+		ASDTFleeLocation* fleeLocation = Cast<ASDTFleeLocation>(*actorIterator);
+		if (fleeLocation)
+		{
+			float distToFleeLocation = FVector::Dist(fleeLocation->GetActorLocation(), playerCharacter->GetActorLocation());
+
+			FVector selfToPlayer = playerCharacter->GetActorLocation() - GetPawn()->GetActorLocation();
+			selfToPlayer.Normalize();
+
+			FVector selfToFleeLocation = fleeLocation->GetActorLocation() - GetPawn()->GetActorLocation();
+			selfToFleeLocation.Normalize();
+
+			float fleeLocationToPlayerAngle = FMath::RadiansToDegrees(acosf(FVector::DotProduct(selfToPlayer, selfToFleeLocation)));
+			float locationScore = distToFleeLocation + fleeLocationToPlayerAngle * 100.f;
+
+			if (locationScore > bestLocationScore)
+			{
+				bestLocationScore = locationScore;
+				bestFleeLocation = fleeLocation;
+			}
+
+			DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), FString::SanitizeFloat(locationScore), fleeLocation, FColor::Red, 5.f, false);
+		}
+	}
+
+	FVector result = FVector::ZeroVector;
+	if (bestFleeLocation) {
+		result = bestFleeLocation->GetActorLocation();
+	}
+
+	return result;
+}
+
+FVector  ASDTAIController::GetRandomCollectibleLocation() {
+
+	TArray<AActor*> foundCollectibles;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASDTCollectible::StaticClass(), foundCollectibles);
+
+	FVector CollectibleLocation = FVector::ZeroVector;
+
+	
+	while (foundCollectibles.Num() != 0)
+	{
+		int index = FMath::RandRange(0, foundCollectibles.Num() - 1);
+
+		ASDTCollectible* collectibleActor = Cast<ASDTCollectible>(foundCollectibles[index]);
+		/*if (!collectibleActor)
+			return;*/
+		if (collectibleActor) {
+			if (!collectibleActor->IsOnCooldown())
+			{
+				CollectibleLocation = foundCollectibles[index]->GetActorLocation();
+				return CollectibleLocation;
+			}
+			else
+			{
+				foundCollectibles.RemoveAt(index);
+			}
+		}
+	}
+	return CollectibleLocation;
 }

@@ -58,8 +58,16 @@ public:
 	virtual void DetectPlayer();
 
 	FVector GetTargetPlayerPos() const { return m_targetPlayerPos; }
+	FVector GetFleePos() const { return m_fleePos; }
+	FVector GetRandomCollectiblePos() const { return m_collectiblePos; }
 	bool IsTargetPlayerSeen() const { return m_isPlayerDetected; }
 	bool IsPlayerPoweredUp() const { return m_isPlayerPoweredUp; }
+
+	uint8 GetTargetPosBBKeyID() const { return m_targetPosBBKeyID; }
+	uint8 GetFleePosBBKeyID() const { return m_fleePosBBKeyID; }
+	uint8 GetRandomCollectiblePosBBKeyID() const { return m_collectiblePosBBKeyID; }
+	uint8 GetTargetSeenKeyID() const { return m_isTargetSeenBBKeyID; }
+	uint8 GetTargetPoweredUpKeyID() const { return m_isTargetPoweredUpBBKeyID; }
 
 	/******/
 
@@ -85,6 +93,9 @@ protected:
     void OnPlayerInteractionNoLosDone();
     void OnMoveToTarget();
 
+
+	virtual void Possess(APawn* pawn) override;
+
 public:
     virtual void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result) override;
     void RotateTowards(const FVector& targetLocation);
@@ -96,6 +107,11 @@ private:
     virtual void UpdatePlayerInteraction(float deltaTime) override;
     virtual void ShowNavigationPath() override;
 
+	FVector GetBestFleeLocation();
+	FVector GetRandomCollectibleLocation();
+
+	/*Attributs pour Behavior Tree*/
+
 	UPROPERTY(transient)
 	UBehaviorTreeComponent* m_behaviorTreeComponent;
 
@@ -103,9 +119,19 @@ private:
 	UBlackboardComponent* m_blackboardComponent;
 
 	FVector m_targetPlayerPos;
+	FVector m_fleePos;
+	FVector m_collectiblePos;
 	bool m_isPlayerDetected;
 	bool m_isPlayerPoweredUp;
 
+	uint8   m_targetPosBBKeyID;
+	uint8   m_fleePosBBKeyID;
+	uint8   m_collectiblePosBBKeyID;
+	uint8   m_isTargetSeenBBKeyID;
+	uint8   m_isTargetPoweredUpBBKeyID;
+
+
+	/*******/
 
 protected:
     FVector m_JumpTarget;
