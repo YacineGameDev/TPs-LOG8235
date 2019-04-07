@@ -74,7 +74,12 @@ Build/*/**
 Plugins/*/Intermediate/*
 */Content/Collections
 */Content/Developers
-*/Content/StarterContent
+
+!*/Content/StarterContent/*
+
+*/Content/StarterContent/*
+!*/Content/StarterContent/ArtificialIntelligence/
+
 */Content/Mannequin
 */Config/*
 
