@@ -9,13 +9,39 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "UnrealMathUtility.h"
 #include "SDTUtils.h"
+#include "SoftDesignTrainingCharacter.h"
 #include "EngineUtils.h"
 
 ASDTAIController::ASDTAIController(const FObjectInitializer& ObjectInitializer)
-    : Super(ObjectInitializer.SetDefaultSubobjectClass<USDTPathFollowingComponent>(TEXT("PathFollowingComponent")))
+    : m_isPlayerDetected(false)
+	,m_isPlayerPoweredUp(false)
+	,Super(ObjectInitializer.SetDefaultSubobjectClass<USDTPathFollowingComponent>(TEXT("PathFollowingComponent")))
 {
     m_PlayerInteractionBehavior = PlayerInteractionBehavior_Collect;
+	m_behaviorTreeComponent = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("BehaviorTreeComponent"));
+	m_blackboardComponent = CreateDefaultSubobject<UBlackboardComponent>(TEXT("BlackboardComponent"));
 }
+
+void ASDTAIController::StartBehaviorTree(APawn* pawn) {
+	if (ASoftDesignTrainingCharacter* character = Cast<ASoftDesignTrainingCharacter>(pawn))
+	{
+		if (character->GetBehaviorTree())
+		{
+			m_behaviorTreeComponent->StartTree(*character->GetBehaviorTree());
+		}
+	}
+}
+
+void ASDTAIController::StopBehaviorTree(APawn* pawn) {
+	if (ASoftDesignTrainingCharacter* character = Cast<ASoftDesignTrainingCharacter>(pawn))
+	{
+		if (character->GetBehaviorTree())
+		{
+			m_behaviorTreeComponent->StopTree();
+		}
+	}
+}
+
 
 void ASDTAIController::GoToBestTarget(float deltaTime)
 {
@@ -360,4 +386,9 @@ void ASDTAIController::UpdatePlayerInteractionBehavior(const FHitResult& detecti
         m_PlayerInteractionBehavior = currentBehavior;
         AIStateInterrupted();
     }
+}
+
+void ASDTAIController::DetectPlayer()
+{
+
 }

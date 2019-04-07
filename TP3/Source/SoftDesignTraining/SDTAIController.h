@@ -4,6 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "SDTBaseAIController.h"
+#include "BehaviorTree/BehaviorTreeComponent.h"
+#include "BehaviorTree/BlackboardComponent.h"
+
 #include "SDTAIController.generated.h"
 
 /**
@@ -44,6 +47,24 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = AI)
     bool Landing = false;
 
+	UBehaviorTreeComponent* GetBehaviorTreeComponent() const { return m_behaviorTreeComponent; }
+	UBlackboardComponent* GetBlackBoardComponent() const { return m_blackboardComponent; }
+
+	void StartBehaviorTree(APawn* pawn);
+	void StopBehaviorTree(APawn* pawn);
+
+	/*Methodes pour BehaviorTree*/
+
+	virtual void DetectPlayer();
+
+	FVector GetTargetPlayerPos() const { return m_targetPlayerPos; }
+	bool IsTargetPlayerSeen() const { return m_isPlayerDetected; }
+	bool IsPlayerPoweredUp() const { return m_isPlayerPoweredUp; }
+
+	/******/
+
+
+
 protected:
 
     enum PlayerInteractionBehavior
@@ -75,10 +96,21 @@ private:
     virtual void UpdatePlayerInteraction(float deltaTime) override;
     virtual void ShowNavigationPath() override;
 
+	UPROPERTY(transient)
+	UBehaviorTreeComponent* m_behaviorTreeComponent;
+
+	UPROPERTY(transient)
+	UBlackboardComponent* m_blackboardComponent;
+
+	FVector m_targetPlayerPos;
+	bool m_isPlayerDetected;
+	bool m_isPlayerPoweredUp;
+
 
 protected:
     FVector m_JumpTarget;
     FRotator m_ObstacleAvoidanceRotation;
     FTimerHandle m_PlayerInteractionNoLosTimer;
     PlayerInteractionBehavior m_PlayerInteractionBehavior;
+
 };
