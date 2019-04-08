@@ -50,6 +50,7 @@ EBTNodeResult::Type UBTTask_MoveToTarget::ExecuteTask(UBehaviorTreeComponent& Ow
 
 			UNavigationSystem* const NavSys = GetWorld()->GetNavigationSystem();
 			NavSys->SimpleMoveToLocation(aiController, targetPosition);
+
 			return EBTNodeResult::Succeeded;
 		}
 	}
