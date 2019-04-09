@@ -16,36 +16,20 @@ void ASDTBaseAIController::Tick(float deltaTime)
 {
     Super::Tick(deltaTime);
 
-	if (GetPawn()->GetName() == "BP_SDTAICharacter46") {
+	//if (GetPawn()->GetName() == "BP_SDTAICharacter46") {
 
 		// UE_LOG(LogTemp, Warning, TEXT("m_ReachedTarget: %s"), (m_ReachedTarget ? TEXT("True*******************************************************************") : TEXT("False")));
-
-		if (m_ReachedTarget)
-		{
-			DetectPlayer(deltaTime);
-		}
-		else {
-			ShowNavigationPath();
-		}
-	}
-
-
-
-	/*if (GetPawn()->GetName() == "BP_SDTAICharacter40_117") {
-
-		UE_LOG(LogTemp, Warning, TEXT("m_ReachedTarget: %s"), (m_ReachedTarget ? TEXT("True*******************************************************************") : TEXT("False")));
-
 		UpdatePlayerInteraction(deltaTime);
 
 		if (m_ReachedTarget)
 		{
-			GoToBestTarget(deltaTime);
+			//DetectPlayer(deltaTime);
 		}
-		else
-		{
+		else {
 			ShowNavigationPath();
 		}
-	}*/
+	//}
+
 }
 
 

@@ -1,10 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "SoftDesignTraining.h"
-#include "SDTAIController.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Bool.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Vector.h"
 #include "BTService_TryDetectTarget.h"
+#include "SDTAIController.h"
+
 
 
 UBTService_TryDetectTarget::UBTService_TryDetectTarget()
@@ -16,28 +17,35 @@ void UBTService_TryDetectTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uin
 {
 	if (ASDTAIController* aiController = Cast<ASDTAIController>(OwnerComp.GetAIOwner()))
 	{
+
 		//Trigger from service the detect
-		// aiController->DetectPlayer();
-		if (aiController->IsTargetPlayerSeen())
-		{
-			//write to bb that the player is seen
-			OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(aiController->GetTargetSeenKeyID(), true);
-			OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(aiController->GetTargetPoweredUpKeyID(), aiController->IsPlayerPoweredUp());
-			if (aiController->IsPlayerPoweredUp()) {
-				//write to bb the flee position
-				OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Vector>(aiController->GetFleePosBBKeyID(), aiController->GetFleePos());
+		// aiController->DetectPlayer();m_ReachedTargetMTrue
+		//aiController->UpdatePlayerInteraction(DeltaSeconds);
+		UE_LOG(LogTemp, Warning, TEXT("m_ReachedTarget is %s"), (aiController->m_ReachedTarget ? TEXT("True"): TEXT("False")));
+
+		if (aiController->m_ReachedTarget) {
+			//UE_LOG(LogTemp, Warning, TEXT("MyCharacter's Bool is %s"), (aiController->GetPlayerInteractionBehavior() == aiController->PlayerInteractionBehavior_Flee ? TEXT("Flee") : aiController->GetPlayerInteractionBehavior() == aiController->PlayerInteractionBehavior_Chase ? TEXT("Chase"): TEXT("Collect")));
+			switch (aiController->GetPlayerInteractionBehavior())
+			{
+			case aiController->PlayerInteractionBehavior_Chase:
+				//UE_LOG(LogTemp, Warning, TEXT("Chase"));
+				OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(aiController->GetTargetSeenKeyID(), true);
+				OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(aiController->GetTargetPoweredUpKeyID(), false);
+				break;
+			case aiController->PlayerInteractionBehavior_Flee:
+				//UE_LOG(LogTemp, Warning, TEXT("Flee"));
+				OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(aiController->GetTargetSeenKeyID(), true);
+				OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(aiController->GetTargetPoweredUpKeyID(), true);
+				OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Vector>(aiController->GetFleePosBBKeyID(), aiController->GetBestFleeLocation());
+
+				break;
+			case aiController->PlayerInteractionBehavior_Collect:
+				//UE_LOG(LogTemp, Warning, TEXT("Collect"));
+				OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(aiController->GetTargetSeenKeyID(), false);
+				OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Vector>(aiController->GetRandomCollectiblePosBBKeyID(), aiController->GetRandomCollectibleLocation());
+				break;
 			}
-			else {
-				//write to bb the position of the target
-				OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Vector>(aiController->GetTargetPosBBKeyID(), aiController->GetTargetPlayerPos());
-			}
-		}
-		else
-		{
-			//write to bb that the player is not seen
-			OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(aiController->GetTargetSeenKeyID(), false);
-			// Collectible Pos
-			OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Vector>(aiController->GetRandomCollectiblePosBBKeyID(), aiController->GetRandomCollectiblePos());
+
 		}
 	}
 }

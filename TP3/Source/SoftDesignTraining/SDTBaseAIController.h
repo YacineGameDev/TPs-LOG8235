@@ -18,15 +18,15 @@ public:
 
     ASDTBaseAIController(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
     virtual void Tick(float deltaTime) override;
-	
+	virtual void UpdatePlayerInteraction(float deltaTime) {};
+	bool m_ReachedTarget;
+
 protected:
     virtual void RotationUpdate(float deltaTime) {};
     virtual void ImpulseToDirection(float deltaTime) {};
 
-    bool m_ReachedTarget;
 private:
     virtual void GoToBestTarget(float deltaTime) {};
 	virtual void DetectPlayer(float deltaTime) {};
-    virtual void UpdatePlayerInteraction(float deltaTime) {};
     virtual void ShowNavigationPath() {};
 };
