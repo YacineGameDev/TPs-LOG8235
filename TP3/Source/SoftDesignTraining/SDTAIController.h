@@ -55,8 +55,6 @@ public:
 
 	/*Methodes pour BehaviorTree*/
 
-	virtual void DetectPlayer();
-
 	FVector GetTargetPlayerPos() const { return m_targetPlayerPos; }
 	FVector GetFleePos() const { return m_fleePos; }
 	FVector GetRandomCollectiblePos() const { return m_collectiblePos; }
@@ -68,6 +66,8 @@ public:
 	uint8 GetRandomCollectiblePosBBKeyID() const { return m_collectiblePosBBKeyID; }
 	uint8 GetTargetSeenKeyID() const { return m_isTargetSeenBBKeyID; }
 	uint8 GetTargetPoweredUpKeyID() const { return m_isTargetPoweredUpBBKeyID; }
+
+	void MovePawn(FVector targetLocation);
 
 	/******/
 
@@ -104,8 +104,10 @@ public:
 
 private:
     virtual void GoToBestTarget(float deltaTime) override;
-    virtual void UpdatePlayerInteraction(float deltaTime) override;
+	virtual void DetectPlayer(float deltaTime) override;
+	virtual void UpdatePlayerInteraction(float deltaTime) override;
     virtual void ShowNavigationPath() override;
+
 
 	FVector GetBestFleeLocation();
 	FVector GetRandomCollectibleLocation();

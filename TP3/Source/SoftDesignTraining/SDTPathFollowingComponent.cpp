@@ -15,6 +15,7 @@ USDTPathFollowingComponent::USDTPathFollowingComponent(const FObjectInitializer&
 
 void USDTPathFollowingComponent::FollowPathSegment(float DeltaTime)
 {
+
     if (!Path.IsValid() || MovementComp == nullptr)
     {
         return;
@@ -28,11 +29,17 @@ void USDTPathFollowingComponent::FollowPathSegment(float DeltaTime)
 
     DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), FString::SanitizeFloat(m_JumpProgressRatio), GetOwner()->GetParentActor(), FColor::Red, 0.f, false);
 
+	// UE_LOG(LogTemp, Warning, TEXT("HasJumpFlag: %s"), (SDTUtils::HasJumpFlag(SegmentStart) ? TEXT("True") : TEXT("False")));
+
     if (SDTUtils::HasJumpFlag(SegmentStart))
     {
         ASDTAIController* controller = Cast<ASDTAIController>(GetOwner());
+
         if (controller)
         {
+			// UE_LOG(LogTemp, Warning, TEXT("controller->InAir: %s"), (controller->InAir ? TEXT("True") : TEXT("False")) );
+
+
             if (controller->InAir)
             {
                 m_JumpProgressRatio += DeltaTime;

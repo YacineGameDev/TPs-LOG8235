@@ -21,6 +21,7 @@ EBTNodeResult::Type UBTTask_MoveToTarget::ExecuteTask(UBehaviorTreeComponent& Ow
 		if (ASDTAIController* aiController = Cast<ASDTAIController>(OwnerComp.GetAIOwner()))
 		{
 			FVector targetPosition = FVector::ZeroVector;
+
 			if (BlackboardKey.SelectedKeyType == UBlackboardKeyType_Object::StaticClass())
 			{
 				if (AActor* targetActor = Cast<AActor>(MyBlackboard->GetValue<UBlackboardKeyType_Object>(BlackboardKey.GetSelectedKeyID())))
@@ -48,8 +49,13 @@ EBTNodeResult::Type UBTTask_MoveToTarget::ExecuteTask(UBehaviorTreeComponent& Ow
 				targetPosition = OwnerComp.GetBlackboardComponent()->GetValue<UBlackboardKeyType_Vector>(aiController->GetTargetPosBBKeyID());
 			}
 
-			UNavigationSystem* const NavSys = GetWorld()->GetNavigationSystem();
-			NavSys->SimpleMoveToLocation(aiController, targetPosition);
+			/*int arand = rand() % 2;
+			UE_LOG(LogTemp, Warning, TEXT("%d: target: %s"),arand, *targetPosition.ToString());
+			*/
+			aiController->MovePawn(targetPosition);
+
+			/*UNavigationSystem* const NavSys = GetWorld()->GetNavigationSystem();
+			NavSys->SimpleMoveToLocation(aiController, targetPosition);*/
 
 			return EBTNodeResult::Succeeded;
 		}

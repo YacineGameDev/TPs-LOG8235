@@ -64,7 +64,7 @@ void ASDTAIController::GoToBestTarget(float deltaTime)
 
         break;
 
-    case PlayerInteractionBehavior_Chase:
+    /*case PlayerInteractionBehavior_Chase:
 
         MoveToPlayer();
 
@@ -74,7 +74,7 @@ void ASDTAIController::GoToBestTarget(float deltaTime)
 
         MoveToBestFleeLocation();
 
-        break;
+        break;*/
     }
 }
 
@@ -96,6 +96,8 @@ void ASDTAIController::MoveToRandomCollectible()
 
         if (!collectibleActor->IsOnCooldown())
         {
+			//	MoveToLocation(targetLocation, 0.5f, false, true, false, NULL, false);
+
             MoveToLocation(foundCollectibles[index]->GetActorLocation(), 0.5f, false, true, true, NULL, false);
             OnMoveToTarget();
             return;
@@ -403,7 +405,7 @@ void ASDTAIController::UpdatePlayerInteractionBehavior(const FHitResult& detecti
 /***********------- NEW CODE -------***********/
 
 
-void ASDTAIController::DetectPlayer()
+void ASDTAIController::DetectPlayer(float deltaTime)
 {
 	//finish jump before updating AI state
 	if (AtJumpSegment)
@@ -428,6 +430,11 @@ void ASDTAIController::DetectPlayer()
 	FHitResult detectionHit;
 	GetHightestPriorityDetectionHit(allDetectionHits, detectionHit);
 
+	if (GetMoveStatus() == EPathFollowingStatus::Idle)
+	{
+		m_ReachedTarget = true;
+	}
+
 	// MAYBE TO REMOVE
 	bool wasPlayerDetected = m_isPlayerDetected;
 
@@ -436,17 +443,23 @@ void ASDTAIController::DetectPlayer()
 		m_isPlayerDetected = detectionHit.GetComponent()->GetCollisionObjectType() == COLLISION_PLAYER;
 
 		if (wasPlayerDetected != m_isPlayerDetected) {
+
 			if(!AtJumpSegment)
 				AIStateInterrupted();
 		}
 
 		if (m_isPlayerDetected) {
+
 			ACharacter * playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+
 			if (!playerCharacter)
 				return;
+
 			m_isPlayerPoweredUp = SDTUtils::IsPlayerPoweredUp(GetWorld());
+
 			if (m_isPlayerPoweredUp) {
 				FVector fleeLocation = GetBestFleeLocation();
+
 				if (fleeLocation != FVector::ZeroVector)
 					m_fleePos = fleeLocation;
 			}
@@ -456,16 +469,30 @@ void ASDTAIController::DetectPlayer()
 		}
 		else {
 			FVector collectibleLocation = GetRandomCollectibleLocation();
+
 			if (collectibleLocation != FVector::ZeroVector)
 				m_collectiblePos = collectibleLocation;
 		}
 	}
 	else {
 		FVector collectibleLocation = GetRandomCollectibleLocation();
+
 		if (collectibleLocation != FVector::ZeroVector)
-			m_collectiblePos = collectibleLocation;
+			m_collectiblePos = collectibleLocation;	
+	}	
+
+	DrawDebugCapsule(GetWorld(), detectionStartLocation + m_DetectionCapsuleHalfLength * selfPawn->GetActorForwardVector(), m_DetectionCapsuleHalfLength, m_DetectionCapsuleRadius, selfPawn->GetActorQuat() * selfPawn->GetActorUpVector().ToOrientationQuat(), FColor::Blue);
+
+}
+
+void ASDTAIController::MovePawn(FVector targetLocation)
+{
+	if (m_ReachedTarget)
+	{
+		MoveToLocation(targetLocation, 0.5f, false, true, true, NULL, false);
+		OnMoveToTarget();
 	}
-		
+	
 }
 
 void ASDTAIController::Possess(APawn* pawn)

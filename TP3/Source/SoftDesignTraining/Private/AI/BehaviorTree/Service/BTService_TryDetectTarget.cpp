@@ -17,7 +17,7 @@ void UBTService_TryDetectTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uin
 	if (ASDTAIController* aiController = Cast<ASDTAIController>(OwnerComp.GetAIOwner()))
 	{
 		//Trigger from service the detect
-		aiController->DetectPlayer();
+		// aiController->DetectPlayer();
 		if (aiController->IsTargetPlayerSeen())
 		{
 			//write to bb that the player is seen
