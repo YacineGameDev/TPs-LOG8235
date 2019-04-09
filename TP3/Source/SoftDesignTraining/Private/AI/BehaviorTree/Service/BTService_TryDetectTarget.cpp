@@ -21,10 +21,10 @@ void UBTService_TryDetectTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uin
 		//Trigger from service the detect
 		// aiController->DetectPlayer();m_ReachedTargetMTrue
 		//aiController->UpdatePlayerInteraction(DeltaSeconds);
-		UE_LOG(LogTemp, Warning, TEXT("m_ReachedTarget is %s"), (aiController->m_ReachedTarget ? TEXT("True"): TEXT("False")));
+		//UE_LOG(LogTemp, Warning, TEXT("m_ReachedTarget is %s"), (aiController->m_ReachedTarget ? TEXT("True"): TEXT("False")));
 
 		if (aiController->m_ReachedTarget) {
-			//UE_LOG(LogTemp, Warning, TEXT("MyCharacter's Bool is %s"), (aiController->GetPlayerInteractionBehavior() == aiController->PlayerInteractionBehavior_Flee ? TEXT("Flee") : aiController->GetPlayerInteractionBehavior() == aiController->PlayerInteractionBehavior_Chase ? TEXT("Chase"): TEXT("Collect")));
+			UE_LOG(LogTemp, Warning, TEXT("On entre"));
 			switch (aiController->GetPlayerInteractionBehavior())
 			{
 			case aiController->PlayerInteractionBehavior_Chase:
