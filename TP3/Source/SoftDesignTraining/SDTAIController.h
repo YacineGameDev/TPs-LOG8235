@@ -61,11 +61,18 @@ public:
 	bool IsTargetPlayerSeen() const { return m_isPlayerDetected; }
 	bool IsPlayerPoweredUp() const { return m_isPlayerPoweredUp; }
 
+	uint8 GetPawnBBKeyID() const { return m_pawnBBKeyID; }
 	uint8 GetTargetPosBBKeyID() const { return m_targetPosBBKeyID; }
 	uint8 GetFleePosBBKeyID() const { return m_fleePosBBKeyID; }
 	uint8 GetRandomCollectiblePosBBKeyID() const { return m_collectiblePosBBKeyID; }
 	uint8 GetTargetSeenKeyID() const { return m_isTargetSeenBBKeyID; }
 	uint8 GetTargetPoweredUpKeyID() const { return m_isTargetPoweredUpBBKeyID; }
+
+
+
+
+
+
 
 	void MovePawn(FVector targetLocation);
 
@@ -141,7 +148,7 @@ private:
 	uint8   m_collectiblePosBBKeyID;
 	uint8   m_isTargetSeenBBKeyID;
 	uint8   m_isTargetPoweredUpBBKeyID;
-
+	uint8	m_pawnBBKeyID;
 
 	/*******/
 

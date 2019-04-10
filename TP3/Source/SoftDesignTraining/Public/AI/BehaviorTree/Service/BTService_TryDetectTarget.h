@@ -19,5 +19,5 @@ public:
 	UBTService_TryDetectTarget();
     
 	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
-	
+	void GetHightestPriorityDetectionHit(const TArray<FHitResult>& hits, FHitResult& outDetectionHit);
 };

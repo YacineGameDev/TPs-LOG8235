@@ -416,7 +416,7 @@ void ASDTAIController::Possess(APawn* pawn)
 			m_isTargetPoweredUpBBKeyID = m_blackboardComponent->GetKeyID("IsPlayerPoweredUp");
 			m_fleePosBBKeyID = m_blackboardComponent->GetKeyID("FleePos");
 			m_collectiblePosBBKeyID = m_blackboardComponent->GetKeyID("CollectiblePos");
-
+			m_pawnBBKeyID = m_blackboardComponent->GetKeyID("SelfActor");
 
 			//Set this agent in the BT
 			m_blackboardComponent->SetValue<UBlackboardKeyType_Object>(m_blackboardComponent->GetKeyID("SelfActor"), pawn);
