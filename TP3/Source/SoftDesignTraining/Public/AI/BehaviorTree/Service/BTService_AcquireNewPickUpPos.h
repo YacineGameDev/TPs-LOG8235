@@ -14,7 +14,11 @@ class SOFTDESIGNTRAINING_API UBTService_AcquireNewPickUpPos : public UBTService
 {
 	GENERATED_BODY()
 	
-	
-	
+public:
+
+	UBTService_AcquireNewPickUpPos();
+
+	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
+	FVector GetRandomCollectibleLocation();
 	
 };

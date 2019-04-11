@@ -67,6 +67,7 @@ public:
 	uint8 GetRandomCollectiblePosBBKeyID() const { return m_collectiblePosBBKeyID; }
 	uint8 GetTargetSeenKeyID() const { return m_isTargetSeenBBKeyID; }
 	uint8 GetTargetPoweredUpKeyID() const { return m_isTargetPoweredUpBBKeyID; }
+	uint8 GetIsFleeingKeyID() const { return m_isFleeingBBKeyID; }
 
 
 
@@ -149,6 +150,7 @@ private:
 	uint8   m_isTargetSeenBBKeyID;
 	uint8   m_isTargetPoweredUpBBKeyID;
 	uint8	m_pawnBBKeyID;
+	uint8	m_isFleeingBBKeyID;
 
 	/*******/
 

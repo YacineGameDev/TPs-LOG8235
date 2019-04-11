@@ -14,7 +14,12 @@ class SOFTDESIGNTRAINING_API UBTService_AcquireNewTargetPos : public UBTService
 {
 	GENERATED_BODY()
 	
-	
+public:
+
+	UBTService_AcquireNewTargetPos();
+
+	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
+
 	
 	
 };

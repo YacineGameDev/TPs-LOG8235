@@ -2,7 +2,6 @@
 
 #include "SoftDesignTraining.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Bool.h"
-#include "BehaviorTree/Blackboard/BlackboardKeyType_Vector.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Object.h"
 #include "BTService_TryDetectTarget.h"
 #include "SDTAIController.h"
@@ -44,10 +43,12 @@ void UBTService_TryDetectTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uin
 
 			if (IsPlayerSeen(allDetectionHits))
 			{
+				//UE_LOG(LogTemp, Warning, TEXT("TargetSeen"));
 				OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(aiController->GetTargetSeenKeyID(), true);
 				OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(aiController->GetTargetPoweredUpKeyID(), SDTUtils::IsPlayerPoweredUp(GetWorld()));
 			}
 			else {
+				//UE_LOG(LogTemp, Warning, TEXT("TargetNotSeen"));
 				OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(aiController->GetTargetSeenKeyID(), false);
 			}
 		}
@@ -64,7 +65,8 @@ bool UBTService_TryDetectTarget::IsPlayerSeen(const TArray<FHitResult>& hits)
 		{
 			if (component->GetCollisionObjectType() == COLLISION_PLAYER)
 			{
-				if (!HasLoSOnHit(hit))
+				//UE_LOG(LogTemp, Warning, TEXT("JE TE VOIS !!!!!!!!!!!!!"));
+				if (HasLoSOnHit(hit))
 					return true;
 			}
 		}

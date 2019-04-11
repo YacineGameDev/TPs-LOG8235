@@ -19,28 +19,32 @@ EBTNodeResult::Type UBTTask_MoveToTarget::ExecuteTask(UBehaviorTreeComponent& Ow
 	{
 		if (ASDTAIController* aiController = Cast<ASDTAIController>(OwnerComp.GetAIOwner()))
 		{
-			if (aiController->m_ReachedTarget) 
+
+			if (!aiController->AtJumpSegment)
 			{
-				
 				FVector targetPosition = FVector::ZeroVector;
 				FVector currentTargetLocation = MyBlackboard->GetValue<UBlackboardKeyType_Vector>(BlackboardKey.GetSelectedKeyID());
-				switch (aiController->GetPlayerInteractionBehavior())
-				{
-				case aiController->PlayerInteractionBehavior_Chase:
-					aiController->MoveToPlayer();
-					break;
-				case aiController->PlayerInteractionBehavior_Flee:
-					aiController->MoveToLocation(currentTargetLocation, 0.5f, false, true, false, NULL, false);
-					aiController->OnMoveToTarget();
-					break;
-				case aiController->PlayerInteractionBehavior_Collect:
-					aiController->MoveToLocation(currentTargetLocation, 0.5f, false, true, false, NULL, false);
-					aiController->OnMoveToTarget();
 
-					break;
-				}
-
+				aiController->MoveToLocation(currentTargetLocation, 0.5f, false, true, false, NULL, false);
+				aiController->OnMoveToTarget();
 			}
+			
+			/*switch (aiController->GetPlayerInteractionBehavior())
+			{
+			case aiController->PlayerInteractionBehavior_Chase:
+				aiController->MoveToPlayer();
+				break;
+			case aiController->PlayerInteractionBehavior_Flee:
+				aiController->MoveToLocation(currentTargetLocation, 0.5f, false, true, false, NULL, false);
+				aiController->OnMoveToTarget();
+				break;
+			case aiController->PlayerInteractionBehavior_Collect:
+				aiController->MoveToLocation(currentTargetLocation, 0.5f, false, true, false, NULL, false);
+				aiController->OnMoveToTarget();
+
+				break;
+			}*/
+
 			return EBTNodeResult::Succeeded;
 		}
 	}

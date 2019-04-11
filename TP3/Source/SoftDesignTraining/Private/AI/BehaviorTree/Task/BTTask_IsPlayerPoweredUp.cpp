@@ -4,7 +4,6 @@
 #include "BTTask_IsPlayerPoweredUp.h"
 #include "SDTAIController.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Bool.h"
-#include "BehaviorTree/Blackboard/BlackboardKeyType_Vector.h"
 
 
 EBTNodeResult::Type UBTTask_IsPlayerPoweredUp::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)

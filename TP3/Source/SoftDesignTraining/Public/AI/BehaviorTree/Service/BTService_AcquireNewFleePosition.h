@@ -14,7 +14,12 @@ class SOFTDESIGNTRAINING_API UBTService_AcquireNewFleePosition : public UBTServi
 {
 	GENERATED_BODY()
 	
-	
-	
+public:
+
+	UBTService_AcquireNewFleePosition();
+
+	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
+	FVector GetBestFleeLocation(APawn* pawn);
+
 	
 };

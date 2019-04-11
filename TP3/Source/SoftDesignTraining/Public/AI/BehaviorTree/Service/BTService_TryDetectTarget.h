@@ -21,8 +21,6 @@ public:
 	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 	
 	bool IsPlayerSeen(const TArray<FHitResult>& hits);
-	// bool IsPlayerSeen(const FHitResult& hit);
 	bool HasLoSOnHit(const FHitResult& hit);
-
 
 };

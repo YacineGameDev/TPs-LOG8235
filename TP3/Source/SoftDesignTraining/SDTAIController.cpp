@@ -417,6 +417,7 @@ void ASDTAIController::Possess(APawn* pawn)
 			m_fleePosBBKeyID = m_blackboardComponent->GetKeyID("FleePos");
 			m_collectiblePosBBKeyID = m_blackboardComponent->GetKeyID("CollectiblePos");
 			m_pawnBBKeyID = m_blackboardComponent->GetKeyID("SelfActor");
+			m_isFleeingBBKeyID = m_blackboardComponent->GetKeyID("isFleeing");
 
 			//Set this agent in the BT
 			m_blackboardComponent->SetValue<UBlackboardKeyType_Object>(m_blackboardComponent->GetKeyID("SelfActor"), pawn);
@@ -425,7 +426,7 @@ void ASDTAIController::Possess(APawn* pawn)
 			m_blackboardComponent->SetValue<UBlackboardKeyType_Vector>(m_blackboardComponent->GetKeyID("CollectiblePos"), FVector::ZeroVector);
 			m_blackboardComponent->SetValue<UBlackboardKeyType_Bool>(m_blackboardComponent->GetKeyID("IsPlayerPoweredUp"), false);
 			m_blackboardComponent->SetValue<UBlackboardKeyType_Bool>(m_blackboardComponent->GetKeyID("TargetIsSeen"), false);
-
+			m_blackboardComponent->SetValue<UBlackboardKeyType_Bool>(m_blackboardComponent->GetKeyID("isFleeing"), false);
 
 		}
 	}
