@@ -54,7 +54,7 @@ void ASDTAIController::StopBehaviorTree(APawn* pawn) {
 }
 
 
-void ASDTAIController::GoToBestTarget(float deltaTime)
+/*void ASDTAIController::GoToBestTarget(float deltaTime)
 {
     switch (m_PlayerInteractionBehavior)
     {
@@ -74,9 +74,9 @@ void ASDTAIController::GoToBestTarget(float deltaTime)
 
         MoveToBestFleeLocation();
 
-        break;*/
+        break;
     }
-}
+}*/
 
 void ASDTAIController::MoveToRandomCollectible()
 {
@@ -278,9 +278,9 @@ void ASDTAIController::UpdatePlayerInteraction(float deltaTime)
     if (!selfPawn)
         return;
 
-    ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+    /*ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
     if (!playerCharacter)
-        return;
+        return;*/
 
     FVector detectionStartLocation = selfPawn->GetActorLocation() + selfPawn->GetActorForwardVector() * m_DetectionCapsuleForwardStartingOffset;
     FVector detectionEndLocation = detectionStartLocation + selfPawn->GetActorForwardVector() * m_DetectionCapsuleHalfLength * 2;
@@ -315,7 +315,6 @@ void ASDTAIController::UpdatePlayerInteraction(float deltaTime)
         debugString = "Collect";
         break;
     }
-
     DrawDebugString(GetWorld(), FVector(0.f, 0.f, 5.f), debugString, GetPawn(), FColor::Orange, 0.f, false);
 
     DrawDebugCapsule(GetWorld(), detectionStartLocation + m_DetectionCapsuleHalfLength * selfPawn->GetActorForwardVector(), m_DetectionCapsuleHalfLength, m_DetectionCapsuleRadius, selfPawn->GetActorQuat() * selfPawn->GetActorUpVector().ToOrientationQuat(), FColor::Blue);
@@ -396,103 +395,9 @@ void ASDTAIController::UpdatePlayerInteractionBehavior(const FHitResult& detecti
 
     if (currentBehavior != m_PlayerInteractionBehavior)
     {
-        m_PlayerInteractionBehavior = currentBehavior;
-        AIStateInterrupted();
+		m_PlayerInteractionBehavior = currentBehavior;
+		AIStateInterrupted();
     }
-}
-
-
-/***********------- NEW CODE -------***********/
-
-
-void ASDTAIController::DetectPlayer(float deltaTime)
-{
-	//finish jump before updating AI state
-	if (AtJumpSegment)
-		return;
-
-	APawn* selfPawn = GetPawn();
-	if (!selfPawn)
-		return;
-
-	m_isPlayerDetected = false;
-	AActor* targetPlayer = NULL;
-
-	FVector detectionStartLocation = selfPawn->GetActorLocation() + selfPawn->GetActorForwardVector() * m_DetectionCapsuleForwardStartingOffset;
-	FVector detectionEndLocation = detectionStartLocation + selfPawn->GetActorForwardVector() * m_DetectionCapsuleHalfLength * 2;
-
-	TArray<TEnumAsByte<EObjectTypeQuery>> detectionTraceObjectTypes;
-	detectionTraceObjectTypes.Add(UEngineTypes::ConvertToObjectType(COLLISION_PLAYER));
-
-	TArray<FHitResult> allDetectionHits;
-	GetWorld()->SweepMultiByObjectType(allDetectionHits, detectionStartLocation, detectionEndLocation, FQuat::Identity, detectionTraceObjectTypes, FCollisionShape::MakeSphere(m_DetectionCapsuleRadius));
-
-	FHitResult detectionHit;
-	GetHightestPriorityDetectionHit(allDetectionHits, detectionHit);
-
-	if (GetMoveStatus() == EPathFollowingStatus::Idle)
-	{
-		m_ReachedTarget = true;
-	}
-
-	// MAYBE TO REMOVE
-	bool wasPlayerDetected = m_isPlayerDetected;
-
-	if (detectionHit.GetComponent())
-	{
-		m_isPlayerDetected = detectionHit.GetComponent()->GetCollisionObjectType() == COLLISION_PLAYER;
-
-		if (wasPlayerDetected != m_isPlayerDetected) {
-
-			if(!AtJumpSegment)
-				AIStateInterrupted();
-		}
-
-		if (m_isPlayerDetected) {
-
-			ACharacter * playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-
-			if (!playerCharacter)
-				return;
-
-			m_isPlayerPoweredUp = SDTUtils::IsPlayerPoweredUp(GetWorld());
-
-			if (m_isPlayerPoweredUp) {
-				FVector fleeLocation = GetBestFleeLocation();
-
-				if (fleeLocation != FVector::ZeroVector)
-					m_fleePos = fleeLocation;
-			}
-			else {
-				m_targetPlayerPos = playerCharacter->GetActorLocation();
-			}
-		}
-		else {
-			FVector collectibleLocation = GetRandomCollectibleLocation();
-
-			if (collectibleLocation != FVector::ZeroVector)
-				m_collectiblePos = collectibleLocation;
-		}
-	}
-	else {
-		FVector collectibleLocation = GetRandomCollectibleLocation();
-
-		if (collectibleLocation != FVector::ZeroVector)
-			m_collectiblePos = collectibleLocation;	
-	}	
-
-	DrawDebugCapsule(GetWorld(), detectionStartLocation + m_DetectionCapsuleHalfLength * selfPawn->GetActorForwardVector(), m_DetectionCapsuleHalfLength, m_DetectionCapsuleRadius, selfPawn->GetActorQuat() * selfPawn->GetActorUpVector().ToOrientationQuat(), FColor::Blue);
-
-}
-
-void ASDTAIController::MovePawn(FVector targetLocation)
-{
-	if (m_ReachedTarget)
-	{
-		MoveToLocation(targetLocation, 0.5f, false, true, true, NULL, false);
-		OnMoveToTarget();
-	}
-	
 }
 
 void ASDTAIController::Possess(APawn* pawn)
@@ -511,6 +416,7 @@ void ASDTAIController::Possess(APawn* pawn)
 			m_isTargetPoweredUpBBKeyID = m_blackboardComponent->GetKeyID("IsPlayerPoweredUp");
 			m_fleePosBBKeyID = m_blackboardComponent->GetKeyID("FleePos");
 			m_collectiblePosBBKeyID = m_blackboardComponent->GetKeyID("CollectiblePos");
+			m_pawnBBKeyID = m_blackboardComponent->GetKeyID("SelfActor");
 
 			//Set this agent in the BT
 			m_blackboardComponent->SetValue<UBlackboardKeyType_Object>(m_blackboardComponent->GetKeyID("SelfActor"), pawn);
@@ -530,8 +436,8 @@ FVector ASDTAIController::GetBestFleeLocation() {
 	ASDTFleeLocation* bestFleeLocation = nullptr;
 
 	ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-	/*if (!playerCharacter)
-		return;*/
+	//if (!playerCharacter)
+		//return;
 
 	for (TActorIterator<ASDTFleeLocation> actorIterator(GetWorld(), ASDTFleeLocation::StaticClass()); actorIterator; ++actorIterator)
 	{
@@ -580,8 +486,8 @@ FVector  ASDTAIController::GetRandomCollectibleLocation() {
 		int index = FMath::RandRange(0, foundCollectibles.Num() - 1);
 
 		ASDTCollectible* collectibleActor = Cast<ASDTCollectible>(foundCollectibles[index]);
-		/*if (!collectibleActor)
-			return;*/
+		//if (!collectibleActor)
+			//return;
 		if (collectibleActor) {
 			if (!collectibleActor->IsOnCooldown())
 			{

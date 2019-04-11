@@ -4,7 +4,6 @@
 
 #include "SDTAIController.h"
 #include "SoftDesignTrainingCharacter.h"
-// #include "AIBase.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Bool.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Vector.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Object.h"
@@ -20,43 +19,28 @@ EBTNodeResult::Type UBTTask_MoveToTarget::ExecuteTask(UBehaviorTreeComponent& Ow
 	{
 		if (ASDTAIController* aiController = Cast<ASDTAIController>(OwnerComp.GetAIOwner()))
 		{
-			FVector targetPosition = FVector::ZeroVector;
-
-			if (BlackboardKey.SelectedKeyType == UBlackboardKeyType_Object::StaticClass())
+			if (aiController->m_ReachedTarget) 
 			{
-				if (AActor* targetActor = Cast<AActor>(MyBlackboard->GetValue<UBlackboardKeyType_Object>(BlackboardKey.GetSelectedKeyID())))
+				
+				FVector targetPosition = FVector::ZeroVector;
+				FVector currentTargetLocation = MyBlackboard->GetValue<UBlackboardKeyType_Vector>(BlackboardKey.GetSelectedKeyID());
+				switch (aiController->GetPlayerInteractionBehavior())
 				{
-					targetPosition = targetActor->GetActorLocation();
+				case aiController->PlayerInteractionBehavior_Chase:
+					aiController->MoveToPlayer();
+					break;
+				case aiController->PlayerInteractionBehavior_Flee:
+					aiController->MoveToLocation(currentTargetLocation, 0.5f, false, true, false, NULL, false);
+					aiController->OnMoveToTarget();
+					break;
+				case aiController->PlayerInteractionBehavior_Collect:
+					aiController->MoveToLocation(currentTargetLocation, 0.5f, false, true, false, NULL, false);
+					aiController->OnMoveToTarget();
+
+					break;
 				}
+
 			}
-			else if (BlackboardKey.SelectedKeyType == UBlackboardKeyType_Vector::StaticClass())
-			{
-				uint8 bbKey = BlackboardKey.GetSelectedKeyID();
-				targetPosition = MyBlackboard->GetValue<UBlackboardKeyType_Vector>(bbKey);
-
-				//Agent is moving to target
-				/*if (bbKey == aiController->GetTargetPosBBKeyID())
-				{
-					if (AAIBase* aiBase = Cast<AAIBase>(aiController->GetCharacter()))
-					{
-						aiBase->SetCurrentPatrolDestination(FVector::ZeroVector);
-						OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Vector>(aiController->GetCurrentPatrolDestinationKeyID(), FVector::ZeroVector);
-					}
-				}*/
-			}
-			else
-			{
-				targetPosition = OwnerComp.GetBlackboardComponent()->GetValue<UBlackboardKeyType_Vector>(aiController->GetTargetPosBBKeyID());
-			}
-
-			/*int arand = rand() % 2;
-			UE_LOG(LogTemp, Warning, TEXT("%d: target: %s"),arand, *targetPosition.ToString());
-			*/
-			aiController->MovePawn(targetPosition);
-
-			/*UNavigationSystem* const NavSys = GetWorld()->GetNavigationSystem();
-			NavSys->SimpleMoveToLocation(aiController, targetPosition);*/
-
 			return EBTNodeResult::Succeeded;
 		}
 	}
