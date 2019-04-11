@@ -21,26 +21,19 @@ void UBTService_TryDetectTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uin
 	{
 		if (ASDTAIController* aiController = Cast<ASDTAIController>(OwnerComp.GetAIOwner()))
 		{
-
-			//Trigger from service the detect
-			// aiController->DetectPlayer();m_ReachedTargetMTrue
-			//aiController->UpdatePlayerInteraction(DeltaSeconds);
-			//UE_LOG(LogTemp, Warning, TEXT("m_ReachedTarget is %s"), (aiController->m_ReachedTarget ? TEXT("True"): TEXT("False")));
-
 			//finish jump before updating AI state
-			/*if (AtJumpSegment)
-				return;*/
+			if (aiController->AtJumpSegment)
+				return;
 
-
-			/*APawn* selfPawn = Cast<APawn>(MyBlackboard->GetValue<UBlackboardKeyType_Object>(aiController->GetPawnBBKeyID()));
+			APawn* selfPawn = Cast<APawn>(MyBlackboard->GetValue<UBlackboardKeyType_Object>(aiController->GetPawnBBKeyID()));
 			if (!selfPawn)
-				return;*/
+				return;
 
-			/*ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+			ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
 			if (!playerCharacter)
-			return;*/
+				return;
 
-			/*FVector detectionStartLocation = selfPawn->GetActorLocation() + selfPawn->GetActorForwardVector() * aiController->m_DetectionCapsuleForwardStartingOffset;
+			FVector detectionStartLocation = selfPawn->GetActorLocation() + selfPawn->GetActorForwardVector() * aiController->m_DetectionCapsuleForwardStartingOffset;
 			FVector detectionEndLocation = detectionStartLocation + selfPawn->GetActorForwardVector() * aiController->m_DetectionCapsuleHalfLength * 2;
 
 			TArray<TEnumAsByte<EObjectTypeQuery>> detectionTraceObjectTypes;
@@ -49,50 +42,21 @@ void UBTService_TryDetectTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uin
 			TArray<FHitResult> allDetectionHits;
 			GetWorld()->SweepMultiByObjectType(allDetectionHits, detectionStartLocation, detectionEndLocation, FQuat::Identity, detectionTraceObjectTypes, FCollisionShape::MakeSphere(aiController->m_DetectionCapsuleRadius));
 
-			FHitResult detectionHit;
-			GetHightestPriorityDetectionHit(allDetectionHits, detectionHit);
-
-			UpdatePlayerInteractionBehavior(detectionHit, deltaTime);
-
-			if (GetMoveStatus() == EPathFollowingStatus::Idle)
+			if (IsPlayerSeen(allDetectionHits))
 			{
-				m_ReachedTarget = true;
+				OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(aiController->GetTargetSeenKeyID(), true);
+				OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(aiController->GetTargetPoweredUpKeyID(), SDTUtils::IsPlayerPoweredUp(GetWorld()));
 			}
-
-
-
-
-			if (aiController->m_ReachedTarget) {
-				UE_LOG(LogTemp, Warning, TEXT("On entre"));
-				switch (aiController->GetPlayerInteractionBehavior())
-				{
-				case aiController->PlayerInteractionBehavior_Chase:
-					//UE_LOG(LogTemp, Warning, TEXT("Chase"));
-					OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(aiController->GetTargetSeenKeyID(), true);
-					OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(aiController->GetTargetPoweredUpKeyID(), false);
-					break;
-				case aiController->PlayerInteractionBehavior_Flee:
-					//UE_LOG(LogTemp, Warning, TEXT("Flee"));
-					OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(aiController->GetTargetSeenKeyID(), true);
-					OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(aiController->GetTargetPoweredUpKeyID(), true);
-					OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Vector>(aiController->GetFleePosBBKeyID(), aiController->GetBestFleeLocation());
-
-					break;
-				case aiController->PlayerInteractionBehavior_Collect:
-					//UE_LOG(LogTemp, Warning, TEXT("Collect"));
-					OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(aiController->GetTargetSeenKeyID(), false);
-					OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Vector>(aiController->GetRandomCollectiblePosBBKeyID(), aiController->GetRandomCollectibleLocation());
-					break;
-				}
-
-			}*/
+			else {
+				OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(aiController->GetTargetSeenKeyID(), false);
+			}
 		}
 	}
 }
 
 
 
-void UBTService_TryDetectTarget::GetHightestPriorityDetectionHit(const TArray<FHitResult>& hits, FHitResult& outDetectionHit)
+bool UBTService_TryDetectTarget::IsPlayerSeen(const TArray<FHitResult>& hits)
 {
 	for (const FHitResult& hit : hits)
 	{
@@ -100,14 +64,31 @@ void UBTService_TryDetectTarget::GetHightestPriorityDetectionHit(const TArray<FH
 		{
 			if (component->GetCollisionObjectType() == COLLISION_PLAYER)
 			{
-				//we can't get more important than the player
-				outDetectionHit = hit;
-				return;
-			}
-			else if (component->GetCollisionObjectType() == COLLISION_COLLECTIBLE)
-			{
-				outDetectionHit = hit;
+				if (!HasLoSOnHit(hit))
+					return true;
 			}
 		}
 	}
+	return false;
+}
+
+
+bool UBTService_TryDetectTarget::HasLoSOnHit(const FHitResult& hit)
+{
+    if (!hit.GetComponent())
+        return false;
+
+    TArray<TEnumAsByte<EObjectTypeQuery>> TraceObjectTypes;
+    TraceObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
+
+    FVector hitDirection = hit.ImpactPoint - hit.TraceStart;
+    hitDirection.Normalize();
+
+    FHitResult losHit;
+    FCollisionQueryParams queryParams = FCollisionQueryParams();
+    queryParams.AddIgnoredActor(hit.GetActor());
+
+    GetWorld()->LineTraceSingleByObjectType(losHit, hit.TraceStart, hit.ImpactPoint + hitDirection, TraceObjectTypes, queryParams);
+
+    return losHit.GetActor() == nullptr;
 }
