@@ -16,17 +16,19 @@ ASDTBaseAIController::ASDTBaseAIController(const FObjectInitializer& ObjectIniti
 void ASDTBaseAIController::Tick(float deltaTime)
 {
     Super::Tick(deltaTime);
-	// AiAgentGroupManager* groupManager = AiAgentGroupManager::GetInstance();
-	//UE_LOG(LogTemp, Warning, TEXT("My group size is %d"), groupManager->m_registeredAgents.Num());
-	if (m_ReachedTarget)
-		{
-			//DetectPlayer(deltaTime);
-		}
-		else {
-			ShowNavigationPath();
-		}
-	//}
 
+	//TO THINK: QUAND AGENT MEUR REINITIALISER VALEUR BLACKBOARD
+	// AGENT PROBLEME AVEC DALLE BP_SDTDeathFloor42
+
+	DisplayExecTime();
+
+	if (m_ReachedTarget)
+	{
+		// update
+	}
+	else {
+		ShowNavigationPath();
+	}
 }
 
 

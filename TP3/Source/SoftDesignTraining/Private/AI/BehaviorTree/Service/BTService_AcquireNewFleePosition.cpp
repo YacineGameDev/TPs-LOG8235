@@ -20,11 +20,15 @@ void UBTService_AcquireNewFleePosition::TickNode(UBehaviorTreeComponent& OwnerCo
 	{
 		if (ASDTAIController* aiController = Cast<ASDTAIController>(OwnerComp.GetAIOwner()))
 		{
+			float startTime = FPlatformTime::ToMilliseconds(FPlatformTime::Cycles());
+
 			if (aiController->m_ReachedTarget)
 			{
 				APawn* pawn = Cast<APawn>(MyBlackboard->GetValue<UBlackboardKeyType_Object>(aiController->GetPawnBBKeyID()));
 				MyBlackboard->SetValue<UBlackboardKeyType_Vector>(aiController->GetFleePosBBKeyID(), GetBestFleeLocation(pawn));
 			}
+
+			aiController->execTime_computeFleePos = FPlatformTime::ToMilliseconds(FPlatformTime::Cycles()) - startTime;
 		}
 	}
 }

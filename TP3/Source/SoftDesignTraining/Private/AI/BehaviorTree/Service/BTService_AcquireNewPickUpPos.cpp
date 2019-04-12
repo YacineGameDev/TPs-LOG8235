@@ -14,10 +14,14 @@ UBTService_AcquireNewPickUpPos::UBTService_AcquireNewPickUpPos()
 
 void UBTService_AcquireNewPickUpPos::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
+	float startTime = FPlatformTime::ToMilliseconds(FPlatformTime::Cycles());
+
 	if (ASDTAIController* aiController = Cast<ASDTAIController>(OwnerComp.GetAIOwner()))
 	{
 		if (aiController->m_ReachedTarget)
 			OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Vector>(aiController->GetRandomCollectiblePosBBKeyID(), UBTService_AcquireNewPickUpPos::GetRandomCollectibleLocation());
+
+		aiController->execTime_computePickUpPos = FPlatformTime::ToMilliseconds(FPlatformTime::Cycles()) - startTime;
 	}
 }
 

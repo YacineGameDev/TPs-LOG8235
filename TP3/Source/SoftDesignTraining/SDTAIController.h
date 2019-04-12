@@ -72,6 +72,9 @@ public:
 	void MovePawn(FVector targetLocation);
 	int targetLocationIdx;
 
+	float execTime_detectPlayer;
+	float execTime_computeFleePos;
+	float execTime_computePickUpPos;
 
 
 	/******/
@@ -125,7 +128,7 @@ private:
     //virtual void GoToBestTarget(float deltaTime) override;
 	//virtual void DetectPlayer(float deltaTime) override;
     virtual void ShowNavigationPath() override;
-
+	virtual void DisplayExecTime() override;
 
 
 	/*Attributs pour Behavior Tree*/

@@ -24,6 +24,9 @@ ASDTAIController::ASDTAIController(const FObjectInitializer& ObjectInitializer)
 	,m_fleePosBBKeyID(0)
 	,m_targetPosBBKeyID(0)
 	,targetLocationIdx(-1)
+	,execTime_detectPlayer(0.f)
+	,execTime_computeFleePos(0.f)
+	,execTime_computePickUpPos(0.f)
 	,Super(ObjectInitializer.SetDefaultSubobjectClass<USDTPathFollowingComponent>(TEXT("PathFollowingComponent")))
 {
     m_PlayerInteractionBehavior = PlayerInteractionBehavior_Collect;
@@ -267,6 +270,12 @@ void ASDTAIController::ShowNavigationPath()
             }
         }
     }
+}
+
+void ASDTAIController::DisplayExecTime() {
+	DrawDebugString(GetWorld(), FVector(0.f, 0.f, 5.f), "DETECT: " + FString::SanitizeFloat(execTime_detectPlayer), GetPawn(), FColor::Orange, 0.f, false);
+	DrawDebugString(GetWorld(), FVector(0.f, 0.f, 15.f), "FLEE: " + FString::SanitizeFloat(execTime_computeFleePos), GetPawn(), FColor::Orange, 0.f, false);
+	DrawDebugString(GetWorld(), FVector(0.f, 0.f, 25.f), "PICKUP: " + FString::SanitizeFloat(execTime_computePickUpPos), GetPawn(), FColor::Orange, 0.f, false);
 }
 
 void ASDTAIController::UpdatePlayerInteraction(float deltaTime)

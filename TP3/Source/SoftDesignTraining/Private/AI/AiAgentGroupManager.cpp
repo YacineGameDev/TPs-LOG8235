@@ -67,16 +67,16 @@ FVector AiAgentGroupManager::allocateTargetPos(ACharacter* character, int & idx)
 			float distanceTargetPlayer = (characterLocation - target->GetActorLocation()).Size();
 			if (distanceTargetPlayer < closestDistance)
 			{
-				FPathFindingQuery query = FPathFindingQuery(Cast<UObject>(character), *character->GetWorld()->GetNavigationSystem()->GetMainNavData(), characterLocation, target->GetActorLocation());
+				/*FPathFindingQuery query = FPathFindingQuery(Cast<UObject>(character), *character->GetWorld()->GetNavigationSystem()->GetMainNavData(), characterLocation, target->GetActorLocation());
 				bool isReachable = character->GetWorld()->GetNavigationSystem()->TestPathSync(query);
 				if (isReachable)
 				{
-
+				*/
 					targetPositions.Find(target, idx);
 					bestTargetLocation = target->GetActorLocation();
 					closestDistance = distanceTargetPlayer;
 					target->isFree = false;
-				}	
+				//}	
 			}
 		}		
 	}
@@ -85,13 +85,13 @@ FVector AiAgentGroupManager::allocateTargetPos(ACharacter* character, int & idx)
 	{
 		int randIdx = rand() % targetPositions.Num();
 		ATargetPosition* target = targetPositions[randIdx];
-		FPathFindingQuery query = FPathFindingQuery(Cast<UObject>(character), *character->GetWorld()->GetNavigationSystem()->GetMainNavData(), characterLocation, target->GetActorLocation());
-		bool isReachable = character->GetWorld()->GetNavigationSystem()->TestPathSync(query);
+		//FPathFindingQuery query = FPathFindingQuery(Cast<UObject>(character), *character->GetWorld()->GetNavigationSystem()->GetMainNavData(), characterLocation, target->GetActorLocation());
+		/*bool isReachable = character->GetWorld()->GetNavigationSystem()->TestPathSync(query);
 		if (isReachable)
-		{
+		{*/
 			bestTargetLocation = target->GetActorLocation();
 			idx = randIdx;
-		}
+	//	}
 	}
 
 	return bestTargetLocation;

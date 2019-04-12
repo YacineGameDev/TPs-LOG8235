@@ -17,6 +17,7 @@ UBTService_TryDetectTarget::UBTService_TryDetectTarget()
 void UBTService_TryDetectTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	float startTime = FPlatformTime::ToMilliseconds(FPlatformTime::Cycles());
+
 	if (const UBlackboardComponent* MyBlackboard = OwnerComp.GetBlackboardComponent()) 
 	{
 		if (ASDTAIController* aiController = Cast<ASDTAIController>(OwnerComp.GetAIOwner()))
@@ -66,9 +67,9 @@ void UBTService_TryDetectTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uin
 				//UE_LOG(LogTemp, Warning, TEXT("TargetNotSeen"));
 				OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(aiController->GetTargetSeenKeyID(), false);
 			}
+			aiController->execTime_detectPlayer = FPlatformTime::ToMilliseconds(FPlatformTime::Cycles()) - startTime;
 		}
 	}
-	float execTime = FPlatformTime::ToMilliseconds(FPlatformTime::Cycles()) - startTime;
 	// UE_LOG(LogTemp, Warning, TEXT("DETECT TARGET: CPUTime %f"), execTime);
 }
 

@@ -29,4 +29,5 @@ private:
     virtual void GoToBestTarget(float deltaTime) {};
 	virtual void DetectPlayer(float deltaTime) {};
     virtual void ShowNavigationPath() {};
+	virtual void DisplayExecTime() {};
 };

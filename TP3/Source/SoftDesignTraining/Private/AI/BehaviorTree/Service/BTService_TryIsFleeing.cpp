@@ -26,14 +26,13 @@ void UBTService_TryIsFleeing::TickNode(UBehaviorTreeComponent& OwnerComp, uint8*
 			if (playerDetected && playerPoweredUp)
 			{
 				aiController->AIStateInterrupted();
-
 				/*APawn* selfPawn = Cast<APawn>(MyBlackboard->GetValue<UBlackboardKeyType_Object>(aiController->GetPawnBBKeyID()));
 				if (!selfPawn)
 					return;
 
 				AiAgentGroupManager* groupManager = AiAgentGroupManager::GetInstance();
-				groupManager->UnregisterAIAgent(selfPawn);*/
-				MyBlackboard->SetValue<UBlackboardKeyType_Bool>(aiController->GetIsFleeingKeyID(), true);
+				groupManager->UnregisterAIAgent(selfPawn);
+				MyBlackboard->SetValue<UBlackboardKeyType_Bool>(aiController->GetIsFleeingKeyID(), true);*/
 				if (!GetWorld()->GetTimerManager().IsTimerActive(fleeTimer))
 				{
 					GetWorld()->GetTimerManager().SetTimer(fleeTimer, this, &UBTService_TryIsFleeing::OnFleeTimerDone, 3.f, false);
