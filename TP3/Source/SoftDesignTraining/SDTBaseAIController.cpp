@@ -2,6 +2,7 @@
 
 #include "SoftDesignTraining.h"
 #include "SDTBaseAIController.h"
+#include "AiAgentGroupManager.h"
 
 
 ASDTBaseAIController::ASDTBaseAIController(const FObjectInitializer& ObjectInitializer)
@@ -15,13 +16,9 @@ ASDTBaseAIController::ASDTBaseAIController(const FObjectInitializer& ObjectIniti
 void ASDTBaseAIController::Tick(float deltaTime)
 {
     Super::Tick(deltaTime);
-
-	//if (GetPawn()->GetName() == "BP_SDTAICharacter46") {
-
-		// UE_LOG(LogTemp, Warning, TEXT("m_ReachedTarget: %s"), (m_ReachedTarget ? TEXT("True*******************************************************************") : TEXT("False")));
-		//UpdatePlayerInteraction(deltaTime);
-
-		if (m_ReachedTarget)
+	AiAgentGroupManager* groupManager = AiAgentGroupManager::GetInstance();
+	//UE_LOG(LogTemp, Warning, TEXT("My group size is %d"), groupManager->m_registeredAgents.Num());
+	if (m_ReachedTarget)
 		{
 			//DetectPlayer(deltaTime);
 		}

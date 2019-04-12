@@ -24,7 +24,6 @@ EBTNodeResult::Type UBTTask_MoveToTarget::ExecuteTask(UBehaviorTreeComponent& Ow
 			{
 				FVector targetPosition = FVector::ZeroVector;
 				FVector currentTargetLocation = MyBlackboard->GetValue<UBlackboardKeyType_Vector>(BlackboardKey.GetSelectedKeyID());
-
 				aiController->MoveToLocation(currentTargetLocation, 0.5f, false, true, false, NULL, false);
 				aiController->OnMoveToTarget();
 			}

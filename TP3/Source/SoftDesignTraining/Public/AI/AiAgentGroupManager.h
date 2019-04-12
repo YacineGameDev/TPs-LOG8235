@@ -4,6 +4,7 @@
 
 #include "SoftDesignTrainingCharacter.h"
 #include "CoreMinimal.h"
+#include "TargetPosition.h"
 
 /**
  * 
@@ -15,13 +16,16 @@ public:
 	static AiAgentGroupManager* GetInstance();
 	static void Destroy();
 
-	void RegisterAIAgent(ASoftDesignTrainingCharacter* character);
-	void UnregisterAIAgent(ASoftDesignTrainingCharacter* character);
+	void RegisterAIAgent(APawn* character);
+	void UnregisterAIAgent(APawn* character);
 
+	void instancierTableau(ACharacter* character);
+
+	TArray<APawn*> m_registeredAgents;
+	TArray<ATargetPosition*> targetPositions;
 	
 private:
 	AiAgentGroupManager();
 	static AiAgentGroupManager* m_Instance;
 
-	TArray<ASoftDesignTrainingCharacter*> m_registeredAgents;
 };
