@@ -18,6 +18,8 @@ public:
 
     virtual void OnCollectPowerUp() override;
 
+	virtual void BeginPlay() override;
+
     bool IsPoweredUp() { return m_IsPoweredUp; }
 
 protected:

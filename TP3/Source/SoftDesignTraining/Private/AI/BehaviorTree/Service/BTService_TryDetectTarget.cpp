@@ -6,7 +6,7 @@
 #include "BTService_TryDetectTarget.h"
 #include "SDTAIController.h"
 #include "SDTUtils.h"
-
+#include "AiAgentGroupManager.h"
 
 
 UBTService_TryDetectTarget::UBTService_TryDetectTarget()
@@ -32,6 +32,15 @@ void UBTService_TryDetectTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uin
 			if (!playerCharacter)
 				return;
 
+			AiAgentGroupManager* groupeManager = AiAgentGroupManager::GetInstance();
+			//TArray<AActor*> test;
+			//playerCharacter->GetAllChildActors(test);
+			//for (AActor* actor : test) {
+			//	UE_LOG(LogTemp, Warning, TEXT("My Child Location is %s"),
+			//		*actor->GetActorLocation().ToString());
+			//	UE_LOG(LogTemp, Warning, TEXT("My Child name is %s"),
+			//		*actor->GetName());
+			//}
 			FVector detectionStartLocation = selfPawn->GetActorLocation() + selfPawn->GetActorForwardVector() * aiController->m_DetectionCapsuleForwardStartingOffset;
 			FVector detectionEndLocation = detectionStartLocation + selfPawn->GetActorForwardVector() * aiController->m_DetectionCapsuleHalfLength * 2;
 
@@ -43,11 +52,16 @@ void UBTService_TryDetectTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uin
 
 			if (IsPlayerSeen(allDetectionHits))
 			{
-				//UE_LOG(LogTemp, Warning, TEXT("TargetSeen"));
 				OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(aiController->GetTargetSeenKeyID(), true);
-				OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(aiController->GetTargetPoweredUpKeyID(), SDTUtils::IsPlayerPoweredUp(GetWorld()));
+				if (SDTUtils::IsPlayerPoweredUp(GetWorld()))
+					OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(aiController->GetTargetPoweredUpKeyID(), true);
+				else {
+					groupeManager->RegisterAIAgent(selfPawn);
+					OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(aiController->GetTargetPoweredUpKeyID(), false);
+				}
 			}
 			else {
+				groupeManager->UnregisterAIAgent(selfPawn);
 				//UE_LOG(LogTemp, Warning, TEXT("TargetNotSeen"));
 				OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(aiController->GetTargetSeenKeyID(), false);
 			}
