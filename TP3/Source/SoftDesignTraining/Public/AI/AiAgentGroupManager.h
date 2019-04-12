@@ -19,7 +19,9 @@ public:
 	void RegisterAIAgent(APawn* character);
 	void UnregisterAIAgent(APawn* character);
 
-	void instancierTableau(ACharacter* character);
+	void initTargetPos(ACharacter* character);
+	void FreeLocation(int idx);
+	FVector allocateTargetPos(ACharacter* character, int & idx);
 
 	TArray<APawn*> m_registeredAgents;
 	TArray<ATargetPosition*> targetPositions;

@@ -6,6 +6,7 @@
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Object.h"
 #include "SDTAIController.h"
 #include "SDTUtils.h"
+#include "AiAgentGroupManager.h"
 
 
 UBTService_TryIsFleeing::UBTService_TryIsFleeing()
@@ -25,6 +26,13 @@ void UBTService_TryIsFleeing::TickNode(UBehaviorTreeComponent& OwnerComp, uint8*
 			if (playerDetected && playerPoweredUp)
 			{
 				aiController->AIStateInterrupted();
+
+				APawn* selfPawn = Cast<APawn>(MyBlackboard->GetValue<UBlackboardKeyType_Object>(aiController->GetPawnBBKeyID()));
+				if (!selfPawn)
+					return;
+
+				AiAgentGroupManager* groupManager = AiAgentGroupManager::GetInstance();
+				groupManager->UnregisterAIAgent(selfPawn);
 				MyBlackboard->SetValue<UBlackboardKeyType_Bool>(aiController->GetIsFleeingKeyID(), true);
 				if (!GetWorld()->GetTimerManager().IsTimerActive(fleeTimer))
 				{

@@ -6,6 +6,7 @@
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Object.h"
 #include "SDTAIController.h"
 #include "DrawDebugHelpers.h"
+#include "AiAgentGroupManager.h"
 
 
 UBTService_AcquireNewTargetPos::UBTService_AcquireNewTargetPos()
@@ -28,14 +29,23 @@ void UBTService_AcquireNewTargetPos::TickNode(UBehaviorTreeComponent& OwnerComp,
 			if (!playerCharacter)
 				return;
 
+			AiAgentGroupManager* groupManager = AiAgentGroupManager::GetInstance();
 
-
-			// if distance relative a player > Seuil
-				// targetPPositon = groupManager -> assigne position;
-				// OwnerComp.GetBlackboardComponent()->SetValue() <- setter la valeur de targetPos dans le BB a targetPPosition	
-			// sinon
-				OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Vector>(aiController->GetTargetPosBBKeyID(), playerCharacter->GetActorLocation());
+			FVector targetLocation = FVector::ZeroVector;
+			float distance = (playerCharacter->GetActorLocation() - selfPawn->GetActorLocation()).Size();
+			if (distance > 150.f)
+			{
+				targetLocation = groupManager->allocateTargetPos(Cast<ACharacter>(selfPawn), aiController->targetLocationIdx);
+			}
+			else
+			{
+				groupManager->FreeLocation(aiController->targetLocationIdx);
+				aiController->targetLocationIdx = -1;
+				targetLocation = playerCharacter->GetActorLocation();
+			}
 			
+			OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Vector>(aiController->GetTargetPosBBKeyID(), targetLocation);
+
 			DrawDebugSphere(GetWorld(), selfPawn->GetActorLocation() + FVector(0.f, 0.f, 100.f), 40.0f, 32, FColor::Purple);
 		}
 	}

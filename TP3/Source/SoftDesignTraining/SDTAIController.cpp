@@ -23,6 +23,7 @@ ASDTAIController::ASDTAIController(const FObjectInitializer& ObjectInitializer)
 	,m_isTargetPoweredUpBBKeyID(0)
 	,m_fleePosBBKeyID(0)
 	,m_targetPosBBKeyID(0)
+	,targetLocationIdx(-1)
 	,Super(ObjectInitializer.SetDefaultSubobjectClass<USDTPathFollowingComponent>(TEXT("PathFollowingComponent")))
 {
     m_PlayerInteractionBehavior = PlayerInteractionBehavior_Collect;

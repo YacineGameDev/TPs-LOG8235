@@ -31,15 +31,6 @@ void ASoftDesignTrainingCharacter::BeginPlay()
 
 }
 
-void ASoftDesignTrainingCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
-{
-	Super::EndPlay(EndPlayReason);
-
-	AiAgentGroupManager* group = AiAgentGroupManager::GetInstance();
-	group->Destroy();
-}
-
-
 void ASoftDesignTrainingCharacter::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
     if (OtherComponent->GetCollisionObjectType() == COLLISION_DEATH_OBJECT)

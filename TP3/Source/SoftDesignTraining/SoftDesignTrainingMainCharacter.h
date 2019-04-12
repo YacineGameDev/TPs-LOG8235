@@ -19,6 +19,7 @@ public:
     virtual void OnCollectPowerUp() override;
 
 	virtual void BeginPlay() override;
+	virtual void EndPlay(EEndPlayReason::Type EndPlayReason);
 
     bool IsPoweredUp() { return m_IsPoweredUp; }
 

@@ -14,7 +14,6 @@ public:
     ASoftDesignTrainingCharacter();
 
     virtual void BeginPlay() override;
-	virtual void EndPlay(EEndPlayReason::Type EndPlayReason);
     virtual void OnCollectPowerUp() {};
     void Die();
 

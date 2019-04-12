@@ -69,15 +69,13 @@ public:
 	uint8 GetTargetPoweredUpKeyID() const { return m_isTargetPoweredUpBBKeyID; }
 	uint8 GetIsFleeingKeyID() const { return m_isFleeingBBKeyID; }
 
-
-
-
-
-
-
 	void MovePawn(FVector targetLocation);
+	int targetLocationIdx;
+
+
 
 	/******/
+
 	//TOM STUFF
 	enum PlayerInteractionBehavior
 	{

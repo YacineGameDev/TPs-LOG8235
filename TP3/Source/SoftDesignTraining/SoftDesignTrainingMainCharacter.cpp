@@ -31,9 +31,18 @@ void ASoftDesignTrainingMainCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	AiAgentGroupManager* group = AiAgentGroupManager::GetInstance();
-	group->instancierTableau(this);
+	group->initTargetPos(this);
 
 }
+
+void ASoftDesignTrainingMainCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	AiAgentGroupManager* group = AiAgentGroupManager::GetInstance();
+	group->Destroy();
+}
+
 
 void ASoftDesignTrainingMainCharacter::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
