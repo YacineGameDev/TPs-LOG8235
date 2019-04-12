@@ -16,7 +16,7 @@ ASDTBaseAIController::ASDTBaseAIController(const FObjectInitializer& ObjectIniti
 void ASDTBaseAIController::Tick(float deltaTime)
 {
     Super::Tick(deltaTime);
-	AiAgentGroupManager* groupManager = AiAgentGroupManager::GetInstance();
+	// AiAgentGroupManager* groupManager = AiAgentGroupManager::GetInstance();
 	//UE_LOG(LogTemp, Warning, TEXT("My group size is %d"), groupManager->m_registeredAgents.Num());
 	if (m_ReachedTarget)
 		{

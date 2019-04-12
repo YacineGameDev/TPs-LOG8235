@@ -33,16 +33,16 @@ void UBTService_AcquireNewTargetPos::TickNode(UBehaviorTreeComponent& OwnerComp,
 
 			FVector targetLocation = FVector::ZeroVector;
 			float distance = (playerCharacter->GetActorLocation() - selfPawn->GetActorLocation()).Size();
-			if (distance > 150.f)
+			/*if (distance > 150.f)
 			{
 				targetLocation = groupManager->allocateTargetPos(Cast<ACharacter>(selfPawn), aiController->targetLocationIdx);
 			}
 			else
 			{
 				groupManager->FreeLocation(aiController->targetLocationIdx);
-				aiController->targetLocationIdx = -1;
-				targetLocation = playerCharacter->GetActorLocation();
-			}
+				aiController->targetLocationIdx = -1;*/
+			targetLocation = playerCharacter->GetActorLocation();
+			//}
 			
 			OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Vector>(aiController->GetTargetPosBBKeyID(), targetLocation);
 
