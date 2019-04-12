@@ -20,7 +20,7 @@ public:
 	void UnregisterAIAgent(APawn* character);
 
 	void initTargetPos(ACharacter* character);
-	void FreeLocation(int idx);
+	void FreeLocation(APawn* character, int idx);
 	FVector allocateTargetPos(ACharacter* character, int & idx);
 
 	TArray<APawn*> m_registeredAgents;
@@ -29,5 +29,6 @@ public:
 private:
 	AiAgentGroupManager();
 	static AiAgentGroupManager* m_Instance;
+	TMap<FString, FVector> m_targetMaps;
 
 };

@@ -7,6 +7,7 @@
 #include "SDTAIController.h"
 #include "SDTUtils.h"
 #include "AiAgentGroupManager.h"
+#include "FpsManager.h"
 
 
 UBTService_TryDetectTarget::UBTService_TryDetectTarget()
@@ -35,14 +36,7 @@ void UBTService_TryDetectTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uin
 				return;
 
 			AiAgentGroupManager* groupeManager = AiAgentGroupManager::GetInstance();
-			//TArray<AActor*> test;
-			//playerCharacter->GetAllChildActors(test);
-			//for (AActor* actor : test) {
-			//	UE_LOG(LogTemp, Warning, TEXT("My Child Location is %s"),
-			//		*actor->GetActorLocation().ToString());
-			//	UE_LOG(LogTemp, Warning, TEXT("My Child name is %s"),
-			//		*actor->GetName());
-			//}
+
 			FVector detectionStartLocation = selfPawn->GetActorLocation() + selfPawn->GetActorForwardVector() * aiController->m_DetectionCapsuleForwardStartingOffset;
 			FVector detectionEndLocation = detectionStartLocation + selfPawn->GetActorForwardVector() * aiController->m_DetectionCapsuleHalfLength * 2;
 
@@ -70,7 +64,6 @@ void UBTService_TryDetectTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uin
 			aiController->execTime_detectPlayer = FPlatformTime::ToMilliseconds(FPlatformTime::Cycles()) - startTime;
 		}
 	}
-	// UE_LOG(LogTemp, Warning, TEXT("DETECT TARGET: CPUTime %f"), execTime);
 }
 
 

@@ -18,10 +18,12 @@ void UBTService_AcquireNewPickUpPos::TickNode(UBehaviorTreeComponent& OwnerComp,
 
 	if (ASDTAIController* aiController = Cast<ASDTAIController>(OwnerComp.GetAIOwner()))
 	{
-		if (aiController->m_ReachedTarget)
+		if (aiController->m_ReachedTarget) {
 			OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Vector>(aiController->GetRandomCollectiblePosBBKeyID(), UBTService_AcquireNewPickUpPos::GetRandomCollectibleLocation());
+			aiController->execTime_computePickUpPos = FPlatformTime::ToMilliseconds(FPlatformTime::Cycles()) - startTime;
+		}
 
-		aiController->execTime_computePickUpPos = FPlatformTime::ToMilliseconds(FPlatformTime::Cycles()) - startTime;
+
 	}
 }
 

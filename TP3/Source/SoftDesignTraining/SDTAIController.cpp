@@ -16,6 +16,7 @@
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Vector.h"
 
 
+
 ASDTAIController::ASDTAIController(const FObjectInitializer& ObjectInitializer)
     : m_isPlayerDetected(false)
 	,m_isPlayerPoweredUp(false)
@@ -273,9 +274,10 @@ void ASDTAIController::ShowNavigationPath()
 }
 
 void ASDTAIController::DisplayExecTime() {
-	DrawDebugString(GetWorld(), FVector(0.f, 0.f, 5.f), "DETECT: " + FString::SanitizeFloat(execTime_detectPlayer), GetPawn(), FColor::Orange, 0.f, false);
-	DrawDebugString(GetWorld(), FVector(0.f, 0.f, 15.f), "FLEE: " + FString::SanitizeFloat(execTime_computeFleePos), GetPawn(), FColor::Orange, 0.f, false);
-	DrawDebugString(GetWorld(), FVector(0.f, 0.f, 25.f), "PICKUP: " + FString::SanitizeFloat(execTime_computePickUpPos), GetPawn(), FColor::Orange, 0.f, false);
+	DrawDebugString(GetWorld(), FVector(100.f, 0.f, 50.f), "DETECT: " + FString::SanitizeFloat(execTime_detectPlayer), GetPawn(), FColor::Orange, 0.f, false);
+	DrawDebugString(GetWorld(), FVector(-100.f, 0.f, 50.f), "FLEE: " + FString::SanitizeFloat(execTime_computeFleePos), GetPawn(), FColor::Orange, 0.f, false);
+	DrawDebugString(GetWorld(), FVector(0.f, 100, 50.f), "PICKUP: " + FString::SanitizeFloat(execTime_computePickUpPos), GetPawn(), FColor::Orange, 0.f, false);
+
 }
 
 void ASDTAIController::UpdatePlayerInteraction(float deltaTime)

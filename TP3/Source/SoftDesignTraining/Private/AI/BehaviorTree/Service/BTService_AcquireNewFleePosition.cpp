@@ -26,9 +26,9 @@ void UBTService_AcquireNewFleePosition::TickNode(UBehaviorTreeComponent& OwnerCo
 			{
 				APawn* pawn = Cast<APawn>(MyBlackboard->GetValue<UBlackboardKeyType_Object>(aiController->GetPawnBBKeyID()));
 				MyBlackboard->SetValue<UBlackboardKeyType_Vector>(aiController->GetFleePosBBKeyID(), GetBestFleeLocation(pawn));
+				aiController->execTime_computeFleePos = FPlatformTime::ToMilliseconds(FPlatformTime::Cycles()) - startTime;
 			}
 
-			aiController->execTime_computeFleePos = FPlatformTime::ToMilliseconds(FPlatformTime::Cycles()) - startTime;
 		}
 	}
 }

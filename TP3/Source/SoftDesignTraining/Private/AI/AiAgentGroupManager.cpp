@@ -36,7 +36,7 @@ void AiAgentGroupManager::UnregisterAIAgent(APawn* aiAgent)
 	m_registeredAgents.Remove(aiAgent);
 	if (ASDTAIController* aiController = Cast<ASDTAIController>(aiAgent->GetController()))
 	{
-		FreeLocation(aiController->targetLocationIdx);
+		FreeLocation(aiAgent, aiController->targetLocationIdx);
 		aiController->targetLocationIdx = -1;
 	}
 
@@ -57,9 +57,17 @@ void AiAgentGroupManager::initTargetPos(ACharacter* playerCharacter)
 
 FVector AiAgentGroupManager::allocateTargetPos(ACharacter* character, int & idx)
 {
+
+	if (m_targetMaps.Contains(character->GetName())) {
+		m_targetMaps[character->GetName()] = targetPositions[idx]->GetActorLocation();
+		return m_targetMaps[character->GetName()];
+	}
+
+
 	FVector characterLocation = character->GetActorLocation();
 	float closestDistance = TNumericLimits< float >::Max();
-	FVector bestTargetLocation = FVector::ZeroVector;
+	
+	ATargetPosition* bestTarget = NULL;
 
 	for (ATargetPosition* target : targetPositions) {
 		if (target->isFree)
@@ -73,15 +81,14 @@ FVector AiAgentGroupManager::allocateTargetPos(ACharacter* character, int & idx)
 				{
 				*/
 					targetPositions.Find(target, idx);
-					bestTargetLocation = target->GetActorLocation();
 					closestDistance = distanceTargetPlayer;
-					target->isFree = false;
+					bestTarget = target;
 				//}	
 			}
 		}		
 	}
 
-	if (bestTargetLocation == FVector::ZeroVector)
+	if (bestTarget == NULL)
 	{
 		int randIdx = rand() % targetPositions.Num();
 		ATargetPosition* target = targetPositions[randIdx];
@@ -89,18 +96,21 @@ FVector AiAgentGroupManager::allocateTargetPos(ACharacter* character, int & idx)
 		/*bool isReachable = character->GetWorld()->GetNavigationSystem()->TestPathSync(query);
 		if (isReachable)
 		{*/
-			bestTargetLocation = target->GetActorLocation();
+			bestTarget = target;
 			idx = randIdx;
 	//	}
 	}
 
-	return bestTargetLocation;
+	bestTarget->isFree = false;
+	m_targetMaps.Add(character->GetName(), bestTarget->GetActorLocation());
+	return bestTarget->GetActorLocation();
 }
 
-void AiAgentGroupManager::FreeLocation(int idx)
+void AiAgentGroupManager::FreeLocation(APawn* character, int idx)
 {
 	if (idx != -1) {
 		targetPositions[idx]->isFree = true;
+		m_targetMaps.Remove(character->GetName());
 	}
 }
 
