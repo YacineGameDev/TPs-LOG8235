@@ -7,7 +7,7 @@
 #include "SDTAIController.h"
 #include "DrawDebugHelpers.h"
 #include "AiAgentGroupManager.h"
-
+#include "FpsManager.h"
 
 UBTService_AcquireNewTargetPos::UBTService_AcquireNewTargetPos()
 {
@@ -16,6 +16,9 @@ UBTService_AcquireNewTargetPos::UBTService_AcquireNewTargetPos()
 
 void UBTService_AcquireNewTargetPos::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
+	FpsManager* FPSmanager = FpsManager::GetInstance();
+	if (!FPSmanager->canExecute()) return;
+
 	if (const UBlackboardComponent* MyBlackboard = OwnerComp.GetBlackboardComponent())
 	{
 		if (ASDTAIController* aiController = Cast<ASDTAIController>(OwnerComp.GetAIOwner()))

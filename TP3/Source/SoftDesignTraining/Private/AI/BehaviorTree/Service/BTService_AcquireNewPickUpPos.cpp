@@ -5,6 +5,7 @@
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Vector.h"
 #include "SDTAIController.h"
 #include "SDTCollectible.h"
+#include "FpsManager.h"
 
 
 UBTService_AcquireNewPickUpPos::UBTService_AcquireNewPickUpPos()
@@ -14,6 +15,9 @@ UBTService_AcquireNewPickUpPos::UBTService_AcquireNewPickUpPos()
 
 void UBTService_AcquireNewPickUpPos::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
+	FpsManager* FPSmanager = FpsManager::GetInstance();
+	if (!FPSmanager->canExecute()) return;
+
 	float startTime = FPlatformTime::ToMilliseconds(FPlatformTime::Cycles());
 
 	if (ASDTAIController* aiController = Cast<ASDTAIController>(OwnerComp.GetAIOwner()))

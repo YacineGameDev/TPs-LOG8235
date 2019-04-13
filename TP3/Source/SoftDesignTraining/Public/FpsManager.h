@@ -9,14 +9,15 @@
  */
 class SOFTDESIGNTRAINING_API FpsManager
 {
+
 public:
 	static FpsManager* GetInstance();
-	bool canExecute(uint8 taskId);
-	~FpsManager();
+	bool canExecute();
+	void Destroy();
 
 private:
-	static FpsManager* m_Instance;
+	FpsManager();
+	static FpsManager* m_FPS_Instance;
 	int currentFrame = 0;
 	float timeLeft = 0.033;
-	FpsManager();
 };

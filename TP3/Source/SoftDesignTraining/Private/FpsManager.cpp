@@ -2,39 +2,42 @@
 
 #include "SoftDesignTraining.h"
 #include "FpsManager.h"
+#include "SDTUtils.h"
+
+FpsManager* FpsManager::m_FPS_Instance;
+
 
 FpsManager::FpsManager()
 {
 }
 
-FpsManager::~FpsManager()
+
+void FpsManager::Destroy()
 {
+	delete m_FPS_Instance;
+	m_FPS_Instance = nullptr;
 }
 
 FpsManager* FpsManager::GetInstance()
 {
-	if (!m_Instance)
+	if (!m_FPS_Instance)
 	{
-		m_Instance = new  FpsManager();
+		m_FPS_Instance = new  FpsManager();
 	}
-
-	return m_Instance;
+	return m_FPS_Instance;
 }
 
-bool FpsManager::canExecute(uint8 taskId) {
+bool FpsManager::canExecute() {
+
 	if (GFrameCounter != currentFrame) {
 		currentFrame = GFrameCounter;
 		timeLeft = 0.033f;
 	}
 
-	switch (taskId) {
-		case 0:
-
-			break;
-		case 1:
-			break;
-		case 2:
-			break;
+	if (timeLeft - 0.0002f > 0) {
+		timeLeft -= 0.0002f;
+		return true;
 	}
+	return false;
 
 }

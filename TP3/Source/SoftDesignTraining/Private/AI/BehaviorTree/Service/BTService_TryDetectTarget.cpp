@@ -17,6 +17,9 @@ UBTService_TryDetectTarget::UBTService_TryDetectTarget()
 
 void UBTService_TryDetectTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
+	FpsManager* FPSmanager = FpsManager::GetInstance();
+	if (!FPSmanager->canExecute()) return;
+
 	float startTime = FPlatformTime::ToMilliseconds(FPlatformTime::Cycles());
 
 	if (const UBlackboardComponent* MyBlackboard = OwnerComp.GetBlackboardComponent()) 

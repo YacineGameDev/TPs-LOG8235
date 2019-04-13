@@ -7,6 +7,7 @@
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Object.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Vector.h"
 #include "SDTAIController.h"
+#include "FpsManager.h"
 
 
 UBTService_AcquireNewFleePosition::UBTService_AcquireNewFleePosition()
@@ -16,6 +17,9 @@ UBTService_AcquireNewFleePosition::UBTService_AcquireNewFleePosition()
 
 void UBTService_AcquireNewFleePosition::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
+	FpsManager* FPSmanager = FpsManager::GetInstance();
+	if (!FPSmanager->canExecute()) return;
+
 	if (UBlackboardComponent* MyBlackboard = OwnerComp.GetBlackboardComponent())
 	{
 		if (ASDTAIController* aiController = Cast<ASDTAIController>(OwnerComp.GetAIOwner()))

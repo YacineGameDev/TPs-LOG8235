@@ -7,6 +7,7 @@
 #include "SDTAIController.h"
 #include "SDTUtils.h"
 #include "AiAgentGroupManager.h"
+#include "FpsManager.h"
 
 
 UBTService_TryIsFleeing::UBTService_TryIsFleeing()
@@ -16,6 +17,9 @@ UBTService_TryIsFleeing::UBTService_TryIsFleeing()
 
 void UBTService_TryIsFleeing::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
+	FpsManager* FPSmanager = FpsManager::GetInstance();
+	if (!FPSmanager->canExecute()) return;
+
 	if (UBlackboardComponent* MyBlackboard = OwnerComp.GetBlackboardComponent())
 	{
 		if (ASDTAIController* aiController = Cast<ASDTAIController>(OwnerComp.GetAIOwner()))
