@@ -6,6 +6,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "AiAgentGroupManager.h"
+#include "FpsManager.h"
 
 
 ASoftDesignTrainingMainCharacter::ASoftDesignTrainingMainCharacter()
@@ -32,6 +33,9 @@ void ASoftDesignTrainingMainCharacter::BeginPlay()
 
 	AiAgentGroupManager* group = AiAgentGroupManager::GetInstance();
 	group->initTargetPos(this);
+
+	FpsManager* fpsManager = FpsManager::GetInstance();
+	fpsManager->Destroy();
 
 }
 

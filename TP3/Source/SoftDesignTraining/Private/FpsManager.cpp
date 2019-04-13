@@ -31,7 +31,7 @@ bool FpsManager::canExecute() {
 
 	if (GFrameCounter != currentFrame) {
 		currentFrame = GFrameCounter;
-		timeLeft = 0.033f;
+		timeLeft = 0.015f;
 	}
 
 	if (timeLeft - 0.0002f > 0) {
