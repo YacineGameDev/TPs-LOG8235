@@ -6,9 +6,6 @@
 #include "CoreMinimal.h"
 #include "TargetPosition.h"
 
-/**
- * 
- */
 class SOFTDESIGNTRAINING_API AiAgentGroupManager
 {
 

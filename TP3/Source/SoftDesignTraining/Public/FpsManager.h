@@ -4,6 +4,9 @@
 
 #include "CoreMinimal.h"
 
+#define AVERAGE_EXEC_TIME 0.0002f
+#define BUDGET 0.025f
+
 /**
  * 
  */

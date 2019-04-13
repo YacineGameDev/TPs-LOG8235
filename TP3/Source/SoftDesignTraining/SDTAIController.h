@@ -55,12 +55,6 @@ public:
 
 	/*Methodes pour BehaviorTree*/
 
-	FVector GetTargetPlayerPos() const { return m_targetPlayerPos; }
-	FVector GetFleePos() const { return m_fleePos; }
-	FVector GetRandomCollectiblePos() const { return m_collectiblePos; }
-	bool IsTargetPlayerSeen() const { return m_isPlayerDetected; }
-	bool IsPlayerPoweredUp() const { return m_isPlayerPoweredUp; }
-
 	uint8 GetPawnBBKeyID() const { return m_pawnBBKeyID; }
 	uint8 GetTargetPosBBKeyID() const { return m_targetPosBBKeyID; }
 	uint8 GetFleePosBBKeyID() const { return m_fleePosBBKeyID; }
@@ -69,7 +63,6 @@ public:
 	uint8 GetTargetPoweredUpKeyID() const { return m_isTargetPoweredUpBBKeyID; }
 	uint8 GetIsFleeingKeyID() const { return m_isFleeingBBKeyID; }
 
-	void MovePawn(FVector targetLocation);
 	int targetLocationIdx;
 
 	float execTime_detectPlayer;
@@ -77,36 +70,9 @@ public:
 	float execTime_computePickUpPos;
 
 
-	/******/
-
-	//TOM STUFF
-	enum PlayerInteractionBehavior
-	{
-		PlayerInteractionBehavior_Collect,
-		PlayerInteractionBehavior_Chase,
-		PlayerInteractionBehavior_Flee
-	};
-
 
 
 protected:
-
-    /*enum PlayerInteractionBehavior
-    {
-        PlayerInteractionBehavior_Collect,
-        PlayerInteractionBehavior_Chase,
-        PlayerInteractionBehavior_Flee
-    };*/
-
-    void GetHightestPriorityDetectionHit(const TArray<FHitResult>& hits, FHitResult& outDetectionHit);
-    void UpdatePlayerInteractionBehavior(const FHitResult& detectionHit, float deltaTime);
-    PlayerInteractionBehavior GetCurrentPlayerInteractionBehavior(const FHitResult& hit);
-    bool HasLoSOnHit(const FHitResult& hit);
-    void MoveToRandomCollectible();
-    void MoveToBestFleeLocation();
-    void PlayerInteractionLoSUpdate();
-    void OnPlayerInteractionNoLosDone();
-
 
 	virtual void Possess(APawn* pawn) override;
 
@@ -115,18 +81,11 @@ public:
     void RotateTowards(const FVector& targetLocation);
     void SetActorLocation(const FVector& targetLocation);
     void AIStateInterrupted();
-	FVector GetBestFleeLocation();
-	FVector GetRandomCollectibleLocation();
 	void OnMoveToTarget();
-	void MoveToPlayer();
-	PlayerInteractionBehavior GetPlayerInteractionBehavior() const { return m_PlayerInteractionBehavior; }
-	virtual void UpdatePlayerInteraction(float deltaTime) override;
 
 
 
 private:
-    //virtual void GoToBestTarget(float deltaTime) override;
-	//virtual void DetectPlayer(float deltaTime) override;
     virtual void ShowNavigationPath() override;
 	virtual void DisplayExecTime() override;
 
@@ -139,12 +98,6 @@ private:
 	UPROPERTY(transient)
 	UBlackboardComponent* m_blackboardComponent;
 
-	FVector m_targetPlayerPos;
-	FVector m_fleePos;
-	FVector m_collectiblePos;
-	bool m_isPlayerDetected;
-	bool m_isPlayerPoweredUp;
-
 	uint8   m_targetPosBBKeyID;
 	uint8   m_fleePosBBKeyID;
 	uint8   m_collectiblePosBBKeyID;
@@ -153,12 +106,10 @@ private:
 	uint8	m_pawnBBKeyID;
 	uint8	m_isFleeingBBKeyID;
 
-	/*******/
 
 protected:
     FVector m_JumpTarget;
     FRotator m_ObstacleAvoidanceRotation;
     FTimerHandle m_PlayerInteractionNoLosTimer;
-    PlayerInteractionBehavior m_PlayerInteractionBehavior;
 
 };

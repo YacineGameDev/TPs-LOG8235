@@ -31,11 +31,11 @@ bool FpsManager::canExecute() {
 
 	if (GFrameCounter != currentFrame) {
 		currentFrame = GFrameCounter;
-		timeLeft = 0.015f;
+		timeLeft = BUDGET;
 	}
 
-	if (timeLeft - 0.0002f > 0) {
-		timeLeft -= 0.0002f;
+	if (timeLeft - AVERAGE_EXEC_TIME > 0) {
+		timeLeft -= AVERAGE_EXEC_TIME;
 		return true;
 	}
 	return false;

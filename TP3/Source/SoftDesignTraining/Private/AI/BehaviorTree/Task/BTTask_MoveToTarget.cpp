@@ -16,10 +16,6 @@
 
 EBTNodeResult::Type UBTTask_MoveToTarget::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-
-	FpsManager* FPSmanager = FpsManager::GetInstance();
-	if (!FPSmanager->canExecute()) return EBTNodeResult::Failed;
-
 	if (const UBlackboardComponent* MyBlackboard = OwnerComp.GetBlackboardComponent())
 	{
 		if (ASDTAIController* aiController = Cast<ASDTAIController>(OwnerComp.GetAIOwner()))
